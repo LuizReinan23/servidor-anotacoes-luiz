@@ -104,7 +104,19 @@
   <footer class="app-footer">
     <small>Servidor de anotações local — dados salvos no navegador (localStorage)</small>
   </footer>
+  
+  <script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/esm/supabase.min.js";
 
-  <script src="app.js"></script>
+  const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
+  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZnhoZHd2cnNmbmtneWx0YmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTM4OTYsImV4cCI6MjA4MDYyOTg5Nn0.jlutOwYLPmJ7y0uwrwyVpuNUJHusRFi5r18-_-xfAxg";
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  // expõe no escopo global pra usar no app.js
+  window.supabaseClient = supabase;
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>

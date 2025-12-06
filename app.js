@@ -1,25 +1,112 @@
-const STORAGE_KEY = "luizNotesV1";
+// =========================
+// Supabase
+// =========================
+const supabase = window.supabaseClient;
 
 let notes = [];
 let editingId = null;
 
-function loadNotes() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    notes = [];
-    return;
+// Carrega notas do Supabase
+async function loadNotesFromDb() {
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar notas no Supabase:", error);
+    return [];
   }
-  try {
-    notes = JSON.parse(raw);
-  } catch (e) {
-    console.error("Erro ao ler localStorage, resetando dados...", e);
-    notes = [];
-  }
+
+  return data.map((row) => ({
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    tags: row.tags || [],
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
 }
 
-function saveNotes() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+// Salva nota nova
+async function insertNoteToDb(note) {
+  const { data, error } = await supabase
+    .from("notes")
+    .insert({
+      title: note.title,
+      category: note.category,
+      tags: note.tags,
+      content: note.content,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Erro ao inserir nota no Supabase:", error);
+    alert("Erro ao salvar nota no banco.");
+    return null;
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    category: data.category,
+    tags: data.tags || [],
+    content: data.content,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
 }
+
+// Atualiza nota existente
+async function updateNoteInDb(note) {
+  const { data, error } = await supabase
+    .from("notes")
+    .update({
+      title: note.title,
+      category: note.category,
+      tags: note.tags,
+      content: note.content,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", note.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Erro ao atualizar nota no Supabase:", error);
+    alert("Erro ao atualizar nota no banco.");
+    return null;
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    category: data.category,
+    tags: data.tags || [],
+    content: data.content,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+// Excluir nota no banco
+async function deleteNoteFromDb(id) {
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+
+  if (error) {
+    console.error("Erro ao excluir nota no Supabase:", error);
+    alert("Erro ao excluir nota no banco.");
+    return false;
+  }
+
+  return true;
+}
+
+// =========================
+// Funções de UI
+// =========================
 
 function formatDate(isoString) {
   const d = new Date(isoString);
@@ -168,7 +255,7 @@ function renderNotes() {
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "btn btn-secondary";
     deleteBtn.textContent = "Excluir";
-    deleteBtn.addEventListener("click", () => deleteNote(note.id));
+    deleteBtn.addEventListener("click", () => handleDeleteNote(note.id));
 
     actionsEl.appendChild(editBtn);
     actionsEl.appendChild(deleteBtn);
@@ -206,7 +293,11 @@ function loadNoteIntoForm(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function deleteNote(id) {
+// =========================
+// Ações (salvar / excluir)
+// =========================
+
+async function handleDeleteNote(id) {
   const note = notes.find((n) => n.id === id);
   const title = note ? note.title : "";
   const confirmDelete = window.confirm(
@@ -214,13 +305,15 @@ function deleteNote(id) {
   );
   if (!confirmDelete) return;
 
+  const ok = await deleteNoteFromDb(id);
+  if (!ok) return;
+
   notes = notes.filter((n) => n.id !== id);
-  saveNotes();
   renderCategoryFilter();
   renderNotes();
 }
 
-function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
   event.preventDefault();
 
   const title = document.getElementById("titleInput").value.trim();
@@ -237,43 +330,55 @@ function handleFormSubmit(event) {
     ? tagsRaw.split(",").map((t) => t.trim()).filter((t) => t !== "")
     : [];
 
-  const now = new Date().toISOString();
-
   if (editingId) {
+    // edição
     const index = notes.findIndex((n) => n.id === editingId);
-    if (index !== -1) {
-      notes[index] = {
-        ...notes[index],
-        title,
-        category,
-        tags,
-        content,
-        updatedAt: now,
-      };
-    }
-  } else {
-    const newNote = {
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    if (index === -1) return;
+
+    const updatedNote = {
+      ...notes[index],
       title,
       category,
       tags,
       content,
-      createdAt: now,
-      updatedAt: now,
     };
-    notes.push(newNote);
+
+    const saved = await updateNoteInDb(updatedNote);
+    if (!saved) return;
+
+    notes[index] = saved;
+  } else {
+    // nova nota
+    const newNote = {
+      title,
+      category,
+      tags,
+      content,
+    };
+
+    const saved = await insertNoteToDb(newNote);
+    if (!saved) return;
+
+    // adiciona no início da lista
+    notes.unshift(saved);
   }
 
-  saveNotes();
   renderCategoryFilter();
   renderNotes();
   clearForm();
 }
 
+// =========================
+// Inicialização
+// =========================
+
 document.addEventListener("DOMContentLoaded", () => {
-  loadNotes();
-  renderCategoryFilter();
-  renderNotes();
+  // carregar notas do Supabase
+  (async () => {
+    notes = await loadNotesFromDb();
+    renderCategoryFilter();
+    renderNotes();
+  })();
 
   const form = document.getElementById("noteForm");
   form.addEventListener("submit", handleFormSubmit);
