@@ -111,7 +111,7 @@
     </section>
   </main>
 
-    <footer class="app-footer">
+  <footer class="app-footer">
     <small>
       Servidor de anotações — dados salvos no Supabase (nuvem) e acessíveis de qualquer dispositivo
     </small>
@@ -126,15 +126,15 @@
     const supabaseAnonKey =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZnhoZHd2cnNmbmtneWx0YmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTM4OTYsImV4cCI6MjA4MDYyOTg5Nn0.jlutOwYLPmJ7y0uwrwyVpuNUJHusRFi5r18-_-xfAxg";
 
-    // window.supabase vem do script acima
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    window.supabaseClient = window.supabase.createClient(
+      supabaseUrl,
+      supabaseAnonKey
+    );
 
-    // expõe no escopo global pra usar no app.js
-    window.supabaseClient = supabase;
-    console.log("Supabase client inicializado:", supabase);
+    console.log("Supabase client inicializado:", window.supabaseClient);
   </script>
 
-  <!-- Lógica da aplicação (já usando Supabase) -->
+  <!-- Lógica da aplicação -->
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,17 +1,23 @@
 // =========================
-// Supabase
+// Supabase Client
 // =========================
-const supabase = window.supabaseClient;
 
-if (!supabase) {
-  console.error("Supabase client não inicializado. Verifique o script no index.html.");
+// Usamos "db" para não conflitar com o global window.supabase da biblioteca
+const db = window.supabaseClient;
+
+if (!db) {
+  console.error(
+    "Supabase client não inicializado! Verifique o script no index.html."
+  );
 }
 
-// ... resto do app.js que te mandei
+// =========================
+// Operações com Supabase
+// =========================
 
 // Carrega notas do Supabase
 async function loadNotesFromDb() {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("notes")
     .select("*")
     .order("created_at", { ascending: false });
@@ -34,7 +40,7 @@ async function loadNotesFromDb() {
 
 // Salva nota nova
 async function insertNoteToDb(note) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("notes")
     .insert({
       title: note.title,
@@ -64,7 +70,7 @@ async function insertNoteToDb(note) {
 
 // Atualiza nota existente
 async function updateNoteInDb(note) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("notes")
     .update({
       title: note.title,
@@ -96,7 +102,7 @@ async function updateNoteInDb(note) {
 
 // Excluir nota no banco
 async function deleteNoteFromDb(id) {
-  const { error } = await supabase.from("notes").delete().eq("id", id);
+  const { error } = await db.from("notes").delete().eq("id", id);
 
   if (error) {
     console.error("Erro ao excluir nota no Supabase:", error);
@@ -106,6 +112,13 @@ async function deleteNoteFromDb(id) {
 
   return true;
 }
+
+// =========================
+// Estado em memória
+// =========================
+
+let notes = [];
+let editingId = null;
 
 // =========================
 // Funções de UI
@@ -330,7 +343,10 @@ async function handleFormSubmit(event) {
   }
 
   const tags = tagsRaw
-    ? tagsRaw.split(",").map((t) => t.trim()).filter((t) => t !== "")
+    ? tagsRaw
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t !== "")
     : [];
 
   if (editingId) {
