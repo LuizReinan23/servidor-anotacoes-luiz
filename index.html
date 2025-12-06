@@ -21,7 +21,12 @@
 
         <div class="form-group">
           <label for="titleInput">Título</label>
-          <input type="text" id="titleInput" placeholder="Ex: Neuropatia periférica por quimioterapia" required />
+          <input
+            type="text"
+            id="titleInput"
+            placeholder="Ex: Neuropatia periférica por quimioterapia"
+            required
+          />
         </div>
 
         <div class="form-group">
@@ -43,7 +48,11 @@
 
         <div class="form-group">
           <label for="tagsInput">Tags (separadas por vírgula)</label>
-          <input type="text" id="tagsInput" placeholder="Ex: oncologia, neuropatia, artigo, estudo" />
+          <input
+            type="text"
+            id="tagsInput"
+            placeholder="Ex: oncologia, neuropatia, artigo, estudo"
+          />
         </div>
 
         <div class="form-group">
@@ -58,7 +67,9 @@
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Salvar anotação</button>
-          <button type="button" id="clearFormBtn" class="btn btn-secondary">Limpar formulário</button>
+          <button type="button" id="clearFormBtn" class="btn btn-secondary">
+            Limpar formulário
+          </button>
         </div>
       </form>
     </section>
@@ -81,7 +92,6 @@
           <label for="categoryFilter">Filtrar por categoria</label>
           <select id="categoryFilter">
             <option value="">Todas</option>
-            <!-- categorias serão preenchidas via JS -->
           </select>
         </div>
 
@@ -96,27 +106,34 @@
       </div>
 
       <div id="notesList" class="notes-list">
-        <!-- cartões de anotações criados via JS -->
+        <!-- cartões criados via JS -->
       </div>
     </section>
   </main>
 
   <footer class="app-footer">
-    <small>Servidor de anotações local — dados salvos no navegador (localStorage)</small>
+    <small>
+      Servidor de anotações — dados salvos no Supabase (nuvem) e acessíveis de qualquer dispositivo
+    </small>
   </footer>
-  
-  <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/esm/supabase.min.js";
 
-  const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
-  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZnhoZHd2cnNmbmtneWx0YmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTM4OTYsImV4cCI6MjA4MDYyOTg5Nn0.jlutOwYLPmJ7y0uwrwyVpuNUJHusRFi5r18-_-xfAxg";
+  <!-- Supabase JS v2 via CDN (global window.supabase) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  <!-- Inicialização do Supabase e exposição global -->
+  <script>
+    const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
+    const supabaseAnonKey =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZnhoZHd2cnNmbmtneWx0YmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTM4OTYsImV4cCI6MjA4MDYyOTg5Nn0.jlutOwYLPmJ7y0uwrwyVpuNUJHusRFi5r18-_-xfAxg";
 
-  // expõe no escopo global pra usar no app.js
-  window.supabaseClient = supabase;
-</script>
+    // window.supabase vem do script acima
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-<script src="app.js"></script>
+    // expõe no escopo global pra usar no app.js
+    window.supabaseClient = supabase;
+  </script>
+
+  <!-- Lógica da aplicação (já usando Supabase) -->
+  <script src="app.js"></script>
 </body>
 </html>
