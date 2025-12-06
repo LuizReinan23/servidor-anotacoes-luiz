@@ -15,7 +15,6 @@ if (!db) {
 // Operações com Supabase - NOTAS
 // =========================
 
-// Carrega notas do Supabase
 async function loadNotesFromDb() {
   const { data, error } = await db
     .from("notes")
@@ -38,7 +37,6 @@ async function loadNotesFromDb() {
   }));
 }
 
-// Salva nota nova
 async function insertNoteToDb(note) {
   const { data, error } = await db
     .from("notes")
@@ -68,7 +66,6 @@ async function insertNoteToDb(note) {
   };
 }
 
-// Atualiza nota existente
 async function updateNoteInDb(note) {
   const { data, error } = await db
     .from("notes")
@@ -100,7 +97,6 @@ async function updateNoteInDb(note) {
   };
 }
 
-// Excluir nota no banco
 async function deleteNoteFromDb(id) {
   const { error } = await db.from("notes").delete().eq("id", id);
 
@@ -190,6 +186,8 @@ function getUniqueCategories() {
 
 function renderCategoryFilter() {
   const categoryFilter = document.getElementById("categoryFilter");
+  if (!categoryFilter) return;
+
   const currentValue = categoryFilter.value;
 
   categoryFilter.innerHTML = "";
@@ -214,12 +212,18 @@ function renderCategoryFilter() {
 
 function renderNotes() {
   const listEl = document.getElementById("notesList");
-  const searchValue = document
-    .getElementById("searchInput")
-    .value.toLowerCase()
-    .trim();
-  const categoryFilter = document.getElementById("categoryFilter").value;
-  const sortValue = document.getElementById("sortSelect").value;
+  if (!listEl) return;
+
+  const searchInput = document.getElementById("searchInput");
+  const searchValue = searchInput
+    ? searchInput.value.toLowerCase().trim()
+    : "";
+
+  const categoryFilterEl = document.getElementById("categoryFilter");
+  const categoryFilter = categoryFilterEl ? categoryFilterEl.value : "";
+
+  const sortSelectEl = document.getElementById("sortSelect");
+  const sortValue = sortSelectEl ? sortSelectEl.value : "newest";
 
   let filtered = notes.filter((note) => {
     const matchesCategory =
@@ -406,14 +410,16 @@ function renderExpensesChart() {
 
   const ctx = canvas.getContext("2d");
 
-  // Agrupa por ano-mês
   const totalsByMonth = new Map();
 
   expenses.forEach((exp) => {
     const d = new Date(exp.date);
     if (Number.isNaN(d.getTime())) return;
 
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
     const current = totalsByMonth.get(key) || 0;
     totalsByMonth.set(key, current + Number(exp.amount || 0));
   });
@@ -456,7 +462,7 @@ function renderExpenses() {
 }
 
 // =========================
-// Ações (salvar / excluir) - NOTAS
+// Ações - NOTAS
 // =========================
 
 async function handleDeleteNote(id) {
@@ -496,7 +502,6 @@ async function handleFormSubmit(event) {
     : [];
 
   if (editingId) {
-    // edição
     const index = notes.findIndex((n) => n.id === editingId);
     if (index === -1) return;
 
@@ -513,7 +518,6 @@ async function handleFormSubmit(event) {
 
     notes[index] = saved;
   } else {
-    // nova nota
     const newNote = {
       title,
       category,
@@ -524,7 +528,6 @@ async function handleFormSubmit(event) {
     const saved = await insertNoteToDb(newNote);
     if (!saved) return;
 
-    // adiciona no início da lista
     notes.unshift(saved);
   }
 
@@ -572,7 +575,6 @@ async function handleExpenseFormSubmit(event) {
   const saved = await insertExpenseToDb(newExpense);
   if (!saved) return;
 
-  // adiciona no início da lista
   expenses.unshift(saved);
 
   renderExpenses();
@@ -603,21 +605,25 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", handleFormSubmit);
   }
 
-  document
-    .getElementById("clearFormBtn")
-    .addEventListener("click", clearForm);
+  const clearBtn = document.getElementById("clearFormBtn");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", clearForm);
+  }
 
-  document
-    .getElementById("searchInput")
-    .addEventListener("input", renderNotes);
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", renderNotes);
+  }
 
-  document
-    .getElementById("categoryFilter")
-    .addEventListener("change", renderNotes);
+  const categoryFilter = document.getElementById("categoryFilter");
+  if (categoryFilter) {
+    categoryFilter.addEventListener("change", renderNotes);
+  }
 
-  document
-    .getElementById("sortSelect")
-    .addEventListener("change", renderNotes);
+  const sortSelect = document.getElementById("sortSelect");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", renderNotes);
+  }
 
   // Form gastos
   const expenseForm = document.getElementById("expenseForm");
@@ -625,26 +631,32 @@ document.addEventListener("DOMContentLoaded", () => {
     expenseForm.addEventListener("submit", handleExpenseFormSubmit);
   }
 
-  // Troca de abas
-  const tabNotes = document.getElementById("tabNotes");
-  const tabExpenses = document.getElementById("tabExpenses");
+  // Troca de modo (cards grandes)
+  const modeNotes = document.getElementById("modeNotes");
+  const modeExpenses = document.getElementById("modeExpenses");
   const notesView = document.getElementById("notesView");
   const expensesView = document.getElementById("expensesView");
 
-  function activateTab(tab) {
-    if (tab === "notes") {
-      tabNotes.classList.add("tab-active");
-      tabExpenses.classList.remove("tab-active");
+  function activateMode(mode) {
+    if (!modeNotes || !modeExpenses || !notesView || !expensesView) return;
+
+    if (mode === "notes") {
+      modeNotes.classList.add("mode-card-active");
+      modeExpenses.classList.remove("mode-card-active");
       notesView.classList.add("active-view");
       expensesView.classList.remove("active-view");
     } else {
-      tabExpenses.classList.add("tab-active");
-      tabNotes.classList.remove("tab-active");
+      modeExpenses.classList.add("mode-card-active");
+      modeNotes.classList.remove("mode-card-active");
       expensesView.classList.add("active-view");
       notesView.classList.remove("active-view");
     }
   }
 
-  tabNotes.addEventListener("click", () => activateTab("notes"));
-  tabExpenses.addEventListener("click", () => activateTab("expenses"));
+  if (modeNotes) {
+    modeNotes.addEventListener("click", () => activateMode("notes"));
+  }
+  if (modeExpenses) {
+    modeExpenses.addEventListener("click", () => activateMode("expenses"));
+  }
 });

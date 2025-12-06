@@ -29,29 +29,47 @@ body {
   color: #9ca3af;
 }
 
-/* Abas */
-.app-tabs {
+/* MODE SWITCHER (Modelo 2) */
+.mode-switcher {
+  padding: 1rem 2rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.mode-card {
+  border-radius: 0.9rem;
+  border: 1px solid #1f2937;
+  background: radial-gradient(circle at top left, #1d2a4a, #020617);
+  padding: 0.9rem 1.1rem;
   display: flex;
-  gap: 0.5rem;
-  padding: 0 2rem 0.75rem;
-  border-bottom: 1px solid #1f2937;
-  background: #020617;
-}
-
-.tab-button {
-  border: none;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
+  flex-direction: column;
+  align-items: flex-start;
   cursor: pointer;
-  background: #111827;
-  color: #e5e7eb;
-  transition: background 0.2s, color 0.2s;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
-.tab-button.tab-active {
-  background: #4f46e5;
-  color: #ffffff;
+.mode-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  border-color: #4b5563;
+}
+
+.mode-card.mode-card-active {
+  border-color: #4f46e5;
+  box-shadow: 0 12px 35px rgba(79, 70, 229, 0.4);
+  background: radial-gradient(circle at top left, #4f46e5, #020617);
+}
+
+.mode-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.mode-subtitle {
+  font-size: 0.8rem;
+  color: #9ca3af;
 }
 
 .app-main {
@@ -163,7 +181,7 @@ body {
   background: #0b1120;
 }
 
-/* Filtros e lista */
+/* Filtros e lista de notas */
 .filters {
   display: flex;
   flex-wrap: wrap;
