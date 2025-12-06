@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Servidor de Anotações - Luiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Servidor de Anotações do Luiz</h1>
+    <p>Central de estudos, pesquisas e ideias</p>
+  </header>
+
+  <main class="app-main">
+    <!-- Coluna esquerda: formulário -->
+    <section class="panel panel-left">
+      <h2>Nova anotação / Editar</h2>
+      <form id="noteForm">
+        <input type="hidden" id="noteId" />
+
+        <div class="form-group">
+          <label for="titleInput">Título</label>
+          <input type="text" id="titleInput" placeholder="Ex: Neuropatia periférica por quimioterapia" required />
+        </div>
+
+        <div class="form-group">
+          <label for="categoryInput">Categoria</label>
+          <input
+            type="text"
+            id="categoryInput"
+            placeholder="Ex: T.I & Redes, Projetos, Automação, Vida pessoal..."
+            list="categorySuggestions"
+            required
+          />
+          <datalist id="categorySuggestions">
+            <option value="T.I & Redes"></option>
+            <option value="Projetos"></option>
+            <option value="Vida pessoal / Desenvolvimento / Suplementos"></option>
+            <option value="Automação (Python, N8N, APIs, Power BI)"></option>
+          </datalist>
+        </div>
+
+        <div class="form-group">
+          <label for="tagsInput">Tags (separadas por vírgula)</label>
+          <input type="text" id="tagsInput" placeholder="Ex: oncologia, neuropatia, artigo, estudo" />
+        </div>
+
+        <div class="form-group">
+          <label for="contentInput">Conteúdo</label>
+          <textarea
+            id="contentInput"
+            rows="8"
+            placeholder="Digite aqui o resumo, pontos importantes, protocolos, comandos, etc."
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar anotação</button>
+          <button type="button" id="clearFormBtn" class="btn btn-secondary">Limpar formulário</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Coluna direita: filtros e lista -->
+    <section class="panel panel-right">
+      <h2>Anotações</h2>
+
+      <div class="filters">
+        <div class="form-group">
+          <label for="searchInput">Buscar</label>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Busque por título, conteúdo ou tag..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="categoryFilter">Filtrar por categoria</label>
+          <select id="categoryFilter">
+            <option value="">Todas</option>
+            <!-- categorias serão preenchidas via JS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="sortSelect">Ordenar por</label>
+          <select id="sortSelect">
+            <option value="newest">Mais recentes</option>
+            <option value="oldest">Mais antigas</option>
+            <option value="title">Título (A-Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="notesList" class="notes-list">
+        <!-- cartões de anotações criados via JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>Servidor de anotações local — dados salvos no navegador (localStorage)</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
