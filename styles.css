@@ -14,7 +14,7 @@ body {
 }
 
 .app-header {
-  padding: 1.5rem 2rem;
+  padding: 1.5rem 2rem 0.75rem;
   border-bottom: 1px solid #1f2937;
   background: linear-gradient(90deg, #111827, #0f172a);
 }
@@ -29,11 +29,44 @@ body {
   color: #9ca3af;
 }
 
+/* Abas */
+.app-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 2rem 0.75rem;
+  border-bottom: 1px solid #1f2937;
+  background: #020617;
+}
+
+.tab-button {
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #111827;
+  color: #e5e7eb;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-button.tab-active {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
 .app-main {
   flex: 1;
-  display: flex;
-  gap: 1rem;
   padding: 1rem 2rem 2rem;
+}
+
+/* Views */
+.view {
+  display: none;
+  gap: 1rem;
+}
+
+.view.active-view {
+  display: flex;
 }
 
 .panel {
@@ -223,6 +256,38 @@ body {
   padding: 0.25rem 0.5rem;
 }
 
+/* Gastos */
+.expenses-chart-wrapper {
+  margin-bottom: 1rem;
+  background: #111827;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.expenses-summary {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.expenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.expenses-table th,
+.expenses-table td {
+  border-bottom: 1px solid #1f2933;
+  padding: 0.4rem 0.5rem;
+}
+
+.expenses-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
 /* Rodapé */
 .app-footer {
   padding: 0.6rem 2rem;
@@ -234,7 +299,7 @@ body {
 
 /* Responsivo */
 @media (max-width: 900px) {
-  .app-main {
+  .view.active-view {
     flex-direction: column;
   }
 
