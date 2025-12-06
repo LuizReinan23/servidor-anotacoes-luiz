@@ -3,8 +3,11 @@
 // =========================
 const supabase = window.supabaseClient;
 
-let notes = [];
-let editingId = null;
+if (!supabase) {
+  console.error("Supabase client não inicializado. Verifique o script no index.html.");
+}
+
+// ... resto do app.js que te mandei
 
 // Carrega notas do Supabase
 async function loadNotesFromDb() {
