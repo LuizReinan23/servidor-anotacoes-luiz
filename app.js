@@ -2,7 +2,7 @@
 // Supabase Client
 // =========================
 
-// Usamos "db" para não conflitar com o global window.supabase da biblioteca
+// usamos "db" para não conflitar com window.supabase
 const db = window.supabaseClient;
 
 if (!db) {
@@ -12,8 +12,37 @@ if (!db) {
 }
 
 // =========================
-// Operações com Supabase - NOTAS
+// ESTADO GLOBAL
 // =========================
+
+let notes = [];
+let editingId = null;
+
+let expenses = [];
+let expensesChart = null;
+
+// =========================
+// HELPERS GERAIS
+// =========================
+
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("pt-BR");
+}
+
+function formatMoney(value) {
+  return (Number(value) || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+// =====================================================
+// =====================  NOTAS  =======================
+// =====================================================
+
+// -------- Supabase: notas --------
 
 async function loadNotesFromDb() {
   const { data, error } = await db
@@ -109,70 +138,7 @@ async function deleteNoteFromDb(id) {
   return true;
 }
 
-// =========================
-// Operações com Supabase - GASTOS
-// =========================
-
-async function loadExpensesFromDb() {
-  const { data, error } = await db
-    .from("expenses")
-    .select("*")
-    .order("date", { ascending: false });
-
-  if (error) {
-    console.error("Erro ao buscar gastos:", error);
-    return [];
-  }
-
-  return data;
-}
-
-async function insertExpenseToDb(expense) {
-  const { data, error } = await db
-    .from("expenses")
-    .insert(expense)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Erro ao inserir gasto no Supabase:", error);
-    alert("Erro ao salvar gasto no banco.");
-    return null;
-  }
-
-  return data;
-}
-
-// =========================
-// Estado em memória
-// =========================
-
-let notes = [];
-let editingId = null;
-
-let expenses = [];
-let expensesChart = null;
-
-// =========================
-// Helpers
-// =========================
-
-function formatDate(isoString) {
-  const d = new Date(isoString);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("pt-BR");
-}
-
-function formatMoney(value) {
-  return (Number(value) || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-// =========================
-// UI - Notas
-// =========================
+// -------- UI: notas --------
 
 function getUniqueCategories() {
   const set = new Set();
@@ -361,109 +327,7 @@ function loadNoteIntoForm(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// =========================
-// UI - Gastos
-// =========================
-
-function renderExpensesTable() {
-  const tbody = document.getElementById("expensesTableBody");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  let total = 0;
-
-  expenses.forEach((exp) => {
-    const tr = document.createElement("tr");
-
-    const dateTd = document.createElement("td");
-    dateTd.textContent = new Date(exp.date).toLocaleDateString("pt-BR");
-
-    const descTd = document.createElement("td");
-    descTd.textContent = exp.description;
-
-    const catTd = document.createElement("td");
-    catTd.textContent = exp.category || "-";
-
-    const amountTd = document.createElement("td");
-    amountTd.textContent = formatMoney(exp.amount);
-
-    total += Number(exp.amount) || 0;
-
-    tr.appendChild(dateTd);
-    tr.appendChild(descTd);
-    tr.appendChild(catTd);
-    tr.appendChild(amountTd);
-
-    tbody.appendChild(tr);
-  });
-
-  const totalEl = document.getElementById("expensesTotal");
-  if (totalEl) {
-    totalEl.textContent = formatMoney(total);
-  }
-}
-
-function renderExpensesChart() {
-  const canvas = document.getElementById("expensesChart");
-  if (!canvas || !window.Chart) return;
-
-  const ctx = canvas.getContext("2d");
-
-  const totalsByMonth = new Map();
-
-  expenses.forEach((exp) => {
-    const d = new Date(exp.date);
-    if (Number.isNaN(d.getTime())) return;
-
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}`;
-    const current = totalsByMonth.get(key) || 0;
-    totalsByMonth.set(key, current + Number(exp.amount || 0));
-  });
-
-  const labels = Array.from(totalsByMonth.keys()).sort();
-  const values = labels.map((k) => totalsByMonth.get(k));
-
-  if (expensesChart) {
-    expensesChart.destroy();
-  }
-
-  expensesChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Gastos por mês (R$)",
-          data: values,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-        },
-      },
-    },
-  });
-}
-
-function renderExpenses() {
-  renderExpensesTable();
-  renderExpensesChart();
-}
-
-// =========================
-// Ações - NOTAS
-// =========================
+// -------- Ações: notas --------
 
 async function handleDeleteNote(id) {
   const note = notes.find((n) => n.id === id);
@@ -536,9 +400,191 @@ async function handleFormSubmit(event) {
   clearForm();
 }
 
-// =========================
-// Ações - GASTOS
-// =========================
+// =====================================================
+// =====================  GASTOS  ======================
+// =====================================================
+
+// -------- Supabase: gastos --------
+
+async function loadExpensesFromDb() {
+  const { data, error } = await db
+    .from("expenses")
+    .select("*")
+    .order("date", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar gastos:", error);
+    return [];
+  }
+
+  return data;
+}
+
+async function insertExpenseToDb(expense) {
+  const { data, error } = await db
+    .from("expenses")
+    .insert(expense)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Erro ao inserir gasto no Supabase:", error);
+    alert("Erro ao salvar gasto no banco.");
+    return null;
+  }
+
+  return data;
+}
+
+// -------- Helpers de filtro de gastos --------
+
+function getUniqueExpenseCategories() {
+  const set = new Set();
+  expenses.forEach((e) => {
+    if (e.category && e.category.trim() !== "") {
+      set.add(e.category.trim());
+    }
+  });
+  return Array.from(set).sort();
+}
+
+function renderExpenseCategoryFilter() {
+  const select = document.getElementById("expenseCategoryFilter");
+  if (!select) return;
+
+  const current = select.value;
+
+  select.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "";
+  optAll.textContent = "Todas";
+  select.appendChild(optAll);
+
+  const categories = getUniqueExpenseCategories();
+  categories.forEach((cat) => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    select.appendChild(opt);
+  });
+
+  const exists = Array.from(select.options).some(
+    (o) => o.value === current
+  );
+  select.value = exists ? current : "";
+}
+
+function getCurrentExpenseFilter() {
+  const select = document.getElementById("expenseCategoryFilter");
+  return select ? select.value : "";
+}
+
+// -------- UI: tabela + gráfico --------
+
+function renderExpensesTable(list) {
+  const tbody = document.getElementById("expensesTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  let total = 0;
+
+  list.forEach((exp) => {
+    const tr = document.createElement("tr");
+
+    const dateTd = document.createElement("td");
+    dateTd.textContent = new Date(exp.date).toLocaleDateString("pt-BR");
+
+    const descTd = document.createElement("td");
+    descTd.textContent = exp.description;
+
+    const catTd = document.createElement("td");
+    catTd.textContent = exp.category || "-";
+
+    const amountTd = document.createElement("td");
+    amountTd.textContent = formatMoney(exp.amount);
+
+    total += Number(exp.amount) || 0;
+
+    tr.appendChild(dateTd);
+    tr.appendChild(descTd);
+    tr.appendChild(catTd);
+    tr.appendChild(amountTd);
+
+    tbody.appendChild(tr);
+  });
+
+  const totalEl = document.getElementById("expensesTotal");
+  if (totalEl) {
+    totalEl.textContent = formatMoney(total);
+  }
+}
+
+function renderExpensesChart(list) {
+  const canvas = document.getElementById("expensesChart");
+  if (!canvas || !window.Chart) return;
+
+  const ctx = canvas.getContext("2d");
+
+  const totalsByMonth = new Map();
+
+  list.forEach((exp) => {
+    const d = new Date(exp.date);
+    if (Number.isNaN(d.getTime())) return;
+
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
+    const current = totalsByMonth.get(key) || 0;
+    totalsByMonth.set(key, current + Number(exp.amount || 0));
+  });
+
+  const labels = Array.from(totalsByMonth.keys()).sort();
+  const values = labels.map((k) => totalsByMonth.get(k));
+
+  if (expensesChart) {
+    expensesChart.destroy();
+  }
+
+  expensesChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Gastos por mês (R$)",
+          data: values,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
+function renderExpenses() {
+  renderExpenseCategoryFilter();
+
+  const filter = getCurrentExpenseFilter();
+
+  const filtered =
+    !filter ? expenses : expenses.filter((e) => e.category === filter);
+
+  renderExpensesTable(filtered);
+  renderExpensesChart(filtered);
+}
+
+// -------- Ações: formulário de gastos --------
 
 async function handleExpenseFormSubmit(event) {
   event.preventDefault();
@@ -581,25 +627,18 @@ async function handleExpenseFormSubmit(event) {
   event.target.reset();
 }
 
-// =========================
-// Inicialização
-// =========================
+// =====================================================
+// ================  INICIALIZAÇÃO  ====================
+// =====================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  // carregar notas
+  // ----- Notas -----
   (async () => {
     notes = await loadNotesFromDb();
     renderCategoryFilter();
     renderNotes();
   })();
 
-  // carregar gastos
-  (async () => {
-    expenses = await loadExpensesFromDb();
-    renderExpenses();
-  })();
-
-  // Form notas
   const form = document.getElementById("noteForm");
   if (form) {
     form.addEventListener("submit", handleFormSubmit);
@@ -625,13 +664,25 @@ document.addEventListener("DOMContentLoaded", () => {
     sortSelect.addEventListener("change", renderNotes);
   }
 
-  // Form gastos
+  // ----- Gastos -----
+  (async () => {
+    expenses = await loadExpensesFromDb();
+    renderExpenses();
+  })();
+
   const expenseForm = document.getElementById("expenseForm");
   if (expenseForm) {
     expenseForm.addEventListener("submit", handleExpenseFormSubmit);
   }
 
-  // Troca de modo (cards grandes)
+  const expenseCategoryFilter = document.getElementById(
+    "expenseCategoryFilter"
+  );
+  if (expenseCategoryFilter) {
+    expenseCategoryFilter.addEventListener("change", renderExpenses);
+  }
+
+  // ----- Alternância de modo (se existir) -----
   const modeNotes = document.getElementById("modeNotes");
   const modeExpenses = document.getElementById("modeExpenses");
   const notesView = document.getElementById("notesView");
