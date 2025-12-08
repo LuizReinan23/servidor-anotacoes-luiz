@@ -96,40 +96,46 @@
 
       <!-- Coluna direita: filtros e lista -->
       <section class="panel panel-right">
-        <h2>Anotações</h2>
+  <h2>Resumo e gráfico</h2>
 
-        <div class="filters">
-          <div class="form-group">
-            <label for="searchInput">Buscar</label>
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Busque por título, conteúdo ou tag..."
-            />
-          </div>
+  <!-- TOTAL DO PERÍODO -->
+  <div class="expenses-summary">
+    <p>
+      <strong>Total do período:</strong>
+      <span id="expensesTotal">R$ 0,00</span>
+    </p>
+  </div>
 
-          <div class="form-group">
-            <label for="categoryFilter">Filtrar por categoria</label>
-            <select id="categoryFilter">
-              <option value="">Todas</option>
-            </select>
-          </div>
+  <!-- 🔽 FILTRO POR CATEGORIA (AGORA FICA ACIMA DO GRÁFICO) -->
+  <div class="expenses-filter">
+    <div class="form-group">
+      <label for="expenseCategoryFilter">Filtrar por categoria</label>
+      <select id="expenseCategoryFilter">
+        <option value="">Todas</option>
+        <!-- opções preenchidas via JS -->
+      </select>
+    </div>
+  </div>
 
-          <div class="form-group">
-            <label for="sortSelect">Ordenar por</label>
-            <select id="sortSelect">
-              <option value="newest">Mais recentes</option>
-              <option value="oldest">Mais antigas</option>
-              <option value="title">Título (A-Z)</option>
-            </select>
-          </div>
-        </div>
+  <!-- GRÁFICO -->
+  <div class="expenses-chart-wrapper">
+    <canvas id="expensesChart" height="200"></canvas>
+  </div>
 
-        <div id="notesList" class="notes-list">
-          <!-- cartões criados via JS -->
-        </div>
-      </section>
-    </section>
+  <!-- LISTA DE GASTOS (APENAS UMA VEZ AGORA) -->
+  <h3>Lista de gastos</h3>
+  <table class="expenses-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Descrição</th>
+        <th>Categoria</th>
+        <th>Valor (R$)</th>
+      </tr>
+    </thead>
+    <tbody id="expensesTableBody"></tbody>
+  </table>
+</section>
 
     <!-- VIEW: GASTOS -->
     <section id="expensesView" class="view">
