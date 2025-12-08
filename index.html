@@ -1,251 +1,265 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <meta charset="UTF-8" />
-  <title>Servidor de Anotações - Luiz</title>
+  <title>Servidor de Anotações e Gastos - Luiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- FAVICON (opcional – se você tiver um arquivo de logo) -->
+  <!-- <link rel="icon" type="image/png" href="logo-notes-finance.png" /> -->
 </head>
 <body>
- <header class="app-header">
-  <div class="app-header-inner">
-    <img src="logo-notas.png" alt="Logo Notas & Financeiro" class="app-logo" />
-    <div>
-      <h1>Servidor de Anotações do Luiz</h1>
-      <p>Central de estudos, pesquisas, ideias e controle financeiro</p>
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-logo-wrapper">
+        <!-- se tiver uma imagem de logo, coloque aqui -->
+        <!-- <img src="logo-notes-finance.png" alt="Logo" class="app-logo" /> -->
+        <div class="app-logo-fallback">LF</div>
+      </div>
+      <div class="app-header-text">
+        <h1>Servidor de Anotações &amp; Gastos</h1>
+        <p>Central do Luiz para estudos, pesquisas e controle financeiro</p>
+      </div>
     </div>
-  </div>
-</header>
 
-  <!-- Botões grandes (modelo 2) -->
-  <section class="mode-switcher">
-    <button id="modeNotes" class="mode-card mode-card-active">
-      <span class="mode-title">Anotações</span>
-      <span class="mode-subtitle">Estudos, pesquisas, comandos, protocolos</span>
-    </button>
-    <button id="modeExpenses" class="mode-card">
-      <span class="mode-title">Gastos</span>
-      <span class="mode-subtitle">Contas do mês, controle e gráficos</span>
-    </button>
-  </section>
+    <!-- BOTÕES PARA MUDAR A VISÃO -->
+    <div class="view-modes">
+      <button id="modeNotes" class="mode-card mode-card-active">
+        <div class="mode-card-title">Anotações</div>
+        <div class="mode-card-subtitle">Estudos, pesquisas, protocolos, comandos…</div>
+      </button>
 
-  <main class="app-main">
-    <!-- VIEW: ANOTAÇÕES -->
-    <section id="notesView" class="view active-view">
-      <!-- Coluna esquerda: formulário -->
-      <section class="panel panel-left">
-        <h2>Nova anotação / Editar</h2>
-        <form id="noteForm">
-          <input type="hidden" id="noteId" />
+      <button id="modeExpenses" class="mode-card">
+        <div class="mode-card-title">Gastos</div>
+        <div class="mode-card-subtitle">Contas do mês, categorias e gráficos</div>
+      </button>
+    </div>
+  </header>
 
-          <div class="form-group">
-            <label for="titleInput">Título</label>
-            <input
-              type="text"
-              id="titleInput"
-              placeholder="Ex: Neuropatia periférica por quimioterapia"
-              required
-            />
+  <main class="page-container">
+
+    <!-- ========================= -->
+    <!-- VISÃO: ANOTAÇÕES -->
+    <!-- ========================= -->
+    <section id="notesView" class="page-section active-view">
+      <main class="app-main">
+        <!-- COLUNA ESQUERDA: FORMULÁRIO DE NOTAS -->
+        <section class="panel panel-left">
+          <h2>Nova anotação / Editar</h2>
+
+          <form id="noteForm">
+            <input type="hidden" id="noteId" />
+
+            <div class="form-group">
+              <label for="titleInput">Título</label>
+              <input
+                type="text"
+                id="titleInput"
+                placeholder="Ex: Neuropatia periférica por quimioterapia"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="categoryInput">Categoria</label>
+              <input
+                type="text"
+                id="categoryInput"
+                placeholder="Ex: T.I & Redes, Projetos, Automação, Vida pessoal..."
+                list="categorySuggestions"
+                required
+              />
+              <datalist id="categorySuggestions">
+                <option value="T.I & Redes"></option>
+                <option value="Projetos"></option>
+                <option value="Vida pessoal / Desenvolvimento / Suplementos"></option>
+                <option value="Automação (Python, N8N, APIs, Power BI)"></option>
+              </datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="tagsInput">Tags (separadas por vírgula)</label>
+              <input
+                type="text"
+                id="tagsInput"
+                placeholder="Ex: oncologia, neuropatia, artigo, estudo"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contentInput">Conteúdo</label>
+              <textarea
+                id="contentInput"
+                rows="8"
+                placeholder="Digite aqui o resumo, pontos importantes, protocolos, comandos, etc."
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Salvar anotação</button>
+              <button type="button" id="clearFormBtn" class="btn btn-secondary">
+                Limpar formulário
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- COLUNA DIREITA: FILTROS E LISTA DE NOTAS -->
+        <section class="panel panel-right">
+          <h2>Anotações</h2>
+
+          <div class="filters">
+            <div class="form-group">
+              <label for="searchInput">Buscar</label>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Busque por título, conteúdo ou tag..."
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="categoryFilter">Filtrar por categoria</label>
+              <select id="categoryFilter">
+                <option value="">Todas</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="sortSelect">Ordenar por</label>
+              <select id="sortSelect">
+                <option value="newest">Mais recentes</option>
+                <option value="oldest">Mais antigas</option>
+                <option value="title">Título (A-Z)</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="categoryInput">Categoria</label>
-            <input
-              type="text"
-              id="categoryInput"
-              placeholder="Ex: T.I & Redes, Projetos, Automação, Vida pessoal..."
-              list="categorySuggestions"
-              required
-            />
-            <datalist id="categorySuggestions">
-              <option value="T.I & Redes"></option>
-              <option value="Projetos"></option>
-              <option value="Vida pessoal / Desenvolvimento / Suplementos"></option>
-              <option value="Automação (Python, N8N, APIs, Power BI)"></option>
-            </datalist>
+          <div id="notesList" class="notes-list">
+            <!-- cartões de anotações via JS -->
           </div>
-
-          <div class="form-group">
-            <label for="tagsInput">Tags (separadas por vírgula)</label>
-            <input
-              type="text"
-              id="tagsInput"
-              placeholder="Ex: oncologia, neuropatia, artigo, estudo"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="contentInput">Conteúdo</label>
-            <textarea
-              id="contentInput"
-              rows="8"
-              placeholder="Digite aqui o resumo, pontos importantes, protocolos, comandos, etc."
-              required
-            ></textarea>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Salvar anotação</button>
-            <button type="button" id="clearFormBtn" class="btn btn-secondary">
-              Limpar formulário
-            </button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Coluna direita: filtros e lista -->
-      <section class="panel panel-right">
-        <h2>Anotações</h2>
-
-        <div class="filters">
-          <div class="form-group">
-            <label for="searchInput">Buscar</label>
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Busque por título, conteúdo ou tag..."
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="categoryFilter">Filtrar por categoria</label>
-            <select id="categoryFilter">
-              <option value="">Todas</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="sortSelect">Ordenar por</label>
-            <select id="sortSelect">
-              <option value="newest">Mais recentes</option>
-              <option value="oldest">Mais antigas</option>
-              <option value="title">Título (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="notesList" class="notes-list">
-          <!-- cartões criados via JS -->
-        </div>
-      </section>
+        </section>
+      </main>
     </section>
 
-    <!-- VIEW: GASTOS -->
-    <section id="expensesView" class="view">
-      <!-- Coluna esquerda: formulário de gastos -->
-      <section class="panel panel-left">
-        <h2>Gastos do mês</h2>
-        <form id="expenseForm">
-          <div class="form-group">
-            <label for="expenseDescription">Descrição</label>
-            <input
-              type="text"
-              id="expenseDescription"
-              placeholder="Ex: Conta de luz, Mercado, Netflix"
-              required
-            />
+    <!-- ========================= -->
+    <!-- VISÃO: GASTOS -->
+    <!-- ========================= -->
+    <section id="expensesView" class="page-section">
+      <main class="app-main">
+        <!-- COLUNA ESQUERDA: FORMULÁRIO DE GASTOS -->
+        <section class="panel panel-left">
+          <h2>Gastos do mês</h2>
+
+          <form id="expenseForm">
+            <div class="form-group">
+              <label for="expenseDescription">Descrição</label>
+              <input
+                type="text"
+                id="expenseDescription"
+                placeholder="Ex: Conta de luz, Mercado, Netflix"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="expenseCategory">Categoria</label>
+              <input
+                type="text"
+                id="expenseCategory"
+                placeholder="Ex: Moradia, Alimentação, Lazer..."
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="expenseAmount">Valor (R$)</label>
+              <input
+                type="number"
+                step="0.01"
+                id="expenseAmount"
+                placeholder="Ex: 250.90"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="expenseDate">Data</label>
+              <input
+                type="date"
+                id="expenseDate"
+                required
+              />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                Adicionar gasto
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- COLUNA DIREITA: RESUMO, FILTRO, GRÁFICO E TABELA -->
+        <section class="panel panel-right">
+          <h2>Resumo e gráfico</h2>
+
+          <!-- TOTAL DO PERÍODO -->
+          <div class="expenses-summary">
+            <p>
+              <strong>Total do período:</strong>
+              <span id="expensesTotal">R$ 0,00</span>
+            </p>
           </div>
 
-          <div class="form-group">
-            <label for="expenseCategory">Categoria</label>
-            <input
-              type="text"
-              id="expenseCategory"
-              placeholder="Ex: Moradia, Alimentação, Lazer..."
-              list="expenseCategorySuggestions"
-            />
-            <datalist id="expenseCategorySuggestions">
-              <option value="Moradia"></option>
-              <option value="Alimentação"></option>
-              <option value="Transporte"></option>
-              <option value="Lazer"></option>
-              <option value="Assinaturas"></option>
-            </datalist>
-          </div>
-
-          <div class="form-group">
-            <label for="expenseAmount">Valor (R$)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              id="expenseAmount"
-              placeholder="Ex: 250.90"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="expenseDate">Data</label>
-            <input
-              type="date"
-              id="expenseDate"
-              required
-            />
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Adicionar gasto</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Coluna direita: resumo + gráfico + tabela -->
-      <section class="panel panel-right">
-        <h2>Resumo e gráfico</h2>
-
-        <div class="expenses-summary">
-          <p><strong>Total do período:</strong> <span id="expensesTotal">R$ 0,00</span></p>
-        </div>
-
-        <div class="expenses-chart-wrapper">
-          <canvas id="expensesChart" height="200"></canvas>
-        </div>
+          <!-- FILTRO POR CATEGORIA (ACIMA DO GRÁFICO) -->
           <div class="expenses-filter">
-    <div class="form-group">
-      <label for="expenseCategoryFilter">Filtrar por categoria</label>
-      <select id="expenseCategoryFilter">
-        <option value="">Todas</option>
-        <!-- opções serão preenchidas via JS -->
-      </select>
-    </div>
-  </div>
+            <div class="form-group">
+              <label for="expenseCategoryFilter">Filtrar por categoria</label>
+              <select id="expenseCategoryFilter">
+                <option value="">Todas</option>
+                <!-- opções preenchidas via JS -->
+              </select>
+            </div>
+          </div>
 
-  <h3>Lista de gastos</h3>
-  <table class="expenses-table">
-    ...
+          <!-- GRÁFICO -->
+          <div class="expenses-chart-wrapper">
+            <canvas id="expensesChart" height="200"></canvas>
+          </div>
 
-        <h3>Lista de gastos</h3>
-        <table class="expenses-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-              <th>Categoria</th>
-              <th>Valor (R$)</th>
-            </tr>
-          </thead>
-          <tbody id="expensesTableBody">
-            <!-- linhas criadas via JS -->
-          </tbody>
-        </table>
-      </section>
+          <!-- LISTA DE GASTOS -->
+          <h3>Lista de gastos</h3>
+          <table class="expenses-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Valor (R$)</th>
+              </tr>
+            </thead>
+            <tbody id="expensesTableBody"></tbody>
+          </table>
+        </section>
+      </main>
     </section>
+
   </main>
 
   <footer class="app-footer">
     <small>
-      Servidor de anotações — dados salvos no Supabase (nuvem) e acessíveis de qualquer dispositivo
+      Dados de anotações e gastos salvos no Supabase — acessíveis de qualquer dispositivo.
     </small>
   </footer>
 
-  <!-- Supabase JS v2 via CDN (global window.supabase) -->
+  <!-- SUPABASE -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <!-- Chart.js para gráficos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Inicialização do Supabase e exposição global -->
   <script>
     const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
     const supabaseAnonKey =
@@ -255,11 +269,13 @@
       supabaseUrl,
       supabaseAnonKey
     );
-
     console.log("Supabase client inicializado:", window.supabaseClient);
   </script>
 
-  <!-- Lógica da aplicação -->
+  <!-- CHART.JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- APP JS -->
   <script src="app.js"></script>
 </body>
 </html>
