@@ -526,22 +526,23 @@ function renderExpensesChart(list) {
 
   const ctx = canvas.getContext("2d");
 
-  // Soma os gastos por categoria
-  const totalsByCategory = new Map();
+  const totalsByMonth = new Map();
 
   list.forEach((exp) => {
-    // trata categoria vazia
-    const catRaw = (exp.category || "Sem categoria").trim();
-    const cat = catRaw === "" ? "Sem categoria" : catRaw;
+    const d = new Date(exp.date);
+    if (Number.isNaN(d.getTime())) return;
 
-    const current = totalsByCategory.get(cat) || 0;
-    totalsByCategory.set(cat, current + Number(exp.amount || 0));
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
+    const current = totalsByMonth.get(key) || 0;
+    totalsByMonth.set(key, current + Number(exp.amount || 0));
   });
 
-  const labels = Array.from(totalsByCategory.keys()).sort();
-  const values = labels.map((c) => totalsByCategory.get(c));
+  const labels = Array.from(totalsByMonth.keys()).sort();
+  const values = labels.map((k) => totalsByMonth.get(k));
 
-  // destrói gráfico anterior, se já existir
   if (expensesChart) {
     expensesChart.destroy();
   }
@@ -552,7 +553,7 @@ function renderExpensesChart(list) {
       labels,
       datasets: [
         {
-          label: "Gastos por categoria (R$)",
+          label: "Gastos por mês (R$)",
           data: values,
         },
       ],

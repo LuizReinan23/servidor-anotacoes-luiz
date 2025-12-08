@@ -338,4 +338,15 @@ body {
   .panel-left {
     max-width: 100%;
   }
+
+  /* Cada "página" (Anotações / Gastos) */
+.page-section {
+  display: none;       /* começa escondida */
+}
+
+/* A que estiver ativa aparece */
+.page-section.active-view {
+  display: block;
+}
+
 }
