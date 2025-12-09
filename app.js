@@ -1,90 +1,20 @@
 // =========================
-// Supabase Client (db)
+// Supabase (ANOTAÇÕES)
 // =========================
 const db = window.supabaseClient;
-
 if (!db) {
-  console.error("Supabase client não inicializado. Verifique index.html.");
+  console.error("Supabase não inicializado – verifique o script no index.html.");
 }
 
-// =========================
-// ESTADO: Anotações
-// =========================
+// Estado de anotações
 let notes = [];
 let editingNoteId = null;
 
-// =========================
-// ESTADO: Gastos (localStorage)
-// =========================
-const EXPENSES_STORAGE_KEY = "luizExpensesV1";
-let expenses = [];
-let expensesChart = null;
-
-// =========================
-// ESTADO: Wiki
-// =========================
-let wikiCommands = [];
-let editingWikiId = null;
-
-// =========================
-// Utilidades gerais
-// =========================
-
-function formatCurrencyBRL(value) {
-  // Garante que sempre vamos trabalhar com um número
-  let num = 0;
-
-  if (typeof value === "number") {
-    num = value;
-  } else if (typeof value === "string") {
-    num = Number(value.replace(",", "."));
-  } else {
-    num = Number(value) || 0;
-  }
-
-  if (!Number.isFinite(num)) {
-    num = 0;
-  }
-
-  return num.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-// =========================
-// TABS
-// =========================
-
-function setupTabs() {
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  const tabContents = {
-    notes: document.getElementById("tab-notes"),
-    expenses: document.getElementById("tab-expenses"),
-    wiki: document.getElementById("tab-wiki"),
-  };
-
-  tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tab = btn.dataset.tab;
-
-      tabButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      Object.values(tabContents).forEach((section) =>
-        section.classList.remove("active")
-      );
-      tabContents[tab].classList.add("active");
-    });
-  });
-}
-
-// =========================
-// ANOTAÇÕES – Supabase
-// =========================
+// --- Operações no Supabase ---
 
 async function loadNotesFromDb() {
   if (!db) return [];
+
   const { data, error } = await db
     .from("notes")
     .select("*")
@@ -108,6 +38,7 @@ async function loadNotesFromDb() {
 
 async function insertNoteToDb(note) {
   if (!db) return null;
+
   const { data, error } = await db
     .from("notes")
     .insert({
@@ -138,6 +69,7 @@ async function insertNoteToDb(note) {
 
 async function updateNoteInDb(note) {
   if (!db) return null;
+
   const { data, error } = await db
     .from("notes")
     .update({
@@ -170,6 +102,7 @@ async function updateNoteInDb(note) {
 
 async function deleteNoteFromDb(id) {
   if (!db) return false;
+
   const { error } = await db.from("notes").delete().eq("id", id);
   if (error) {
     console.error("Erro ao excluir nota no Supabase:", error);
@@ -179,7 +112,19 @@ async function deleteNoteFromDb(id) {
   return true;
 }
 
-// Helpers de UI para notas
+// =========================
+// Utilitários gerais
+// =========================
+
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("pt-BR");
+}
+
+// =========================
+// UI – ANOTAÇÕES
+// =========================
 
 function getUniqueNoteCategories() {
   const set = new Set();
@@ -191,37 +136,39 @@ function getUniqueNoteCategories() {
   return Array.from(set).sort();
 }
 
-function renderNoteCategoryFilter() {
-  const categoryFilter = document.getElementById("categoryFilter");
-  if (!categoryFilter) return;
+function renderNotesCategoryFilter() {
+  const select = document.getElementById("categoryFilter");
+  if (!select) return;
 
-  const current = categoryFilter.value;
+  const current = select.value;
+  select.innerHTML = "";
 
-  categoryFilter.innerHTML = "";
   const optAll = document.createElement("option");
   optAll.value = "";
   optAll.textContent = "Todas";
-  categoryFilter.appendChild(optAll);
+  select.appendChild(optAll);
 
-  const categories = getUniqueNoteCategories();
-  categories.forEach((cat) => {
+  const cats = getUniqueNoteCategories();
+  cats.forEach((c) => {
     const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    categoryFilter.appendChild(opt);
+    opt.value = c;
+    opt.textContent = c;
+    select.appendChild(opt);
   });
 
-  categoryFilter.value = current || "";
+  const exists = Array.from(select.options).some((o) => o.value === current);
+  select.value = exists ? current : "";
 }
 
 function renderNotes() {
   const listEl = document.getElementById("notesList");
-  const searchValue = document
-    .getElementById("searchInput")
-    .value.toLowerCase()
+  if (!listEl) return;
+
+  const searchValue = (document.getElementById("searchInput")?.value || "")
+    .toLowerCase()
     .trim();
-  const categoryFilter = document.getElementById("categoryFilter").value;
-  const sortValue = document.getElementById("sortSelect").value;
+  const categoryFilter = document.getElementById("categoryFilter")?.value || "";
+  const sortValue = document.getElementById("sortSelect")?.value || "newest";
 
   let filtered = notes.filter((note) => {
     const matchesCategory =
@@ -232,9 +179,7 @@ function renderNotes() {
 
     const inTitle = note.title.toLowerCase().includes(searchValue);
     const inContent = note.content.toLowerCase().includes(searchValue);
-    const inCategory = (note.category || "")
-      .toLowerCase()
-      .includes(searchValue);
+    const inCategory = (note.category || "").toLowerCase().includes(searchValue);
     const inTags = (note.tags || [])
       .join(",")
       .toLowerCase()
@@ -244,9 +189,13 @@ function renderNotes() {
   });
 
   if (sortValue === "newest") {
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    filtered.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
   } else if (sortValue === "oldest") {
-    filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    filtered.sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
   } else if (sortValue === "title") {
     filtered.sort((a, b) =>
       a.title.localeCompare(b.title, "pt-BR", { sensitivity: "base" })
@@ -297,10 +246,10 @@ function renderNotes() {
 
     const metaEl = document.createElement("div");
     metaEl.className = "note-meta";
-    const created = formatDateTimeBR(note.createdAt);
+    const created = formatDate(note.createdAt);
     const updated =
       note.updatedAt && note.updatedAt !== note.createdAt
-        ? " • Atualizada: " + formatDateTimeBR(note.updatedAt)
+        ? " • Atualizada: " + formatDate(note.updatedAt)
         : "";
     metaEl.textContent = `Criada: ${created}${updated}`;
 
@@ -322,9 +271,7 @@ function renderNotes() {
 
     card.appendChild(header);
     card.appendChild(contentEl);
-    if (note.tags && note.tags.length > 0) {
-      card.appendChild(tagsEl);
-    }
+    if (note.tags && note.tags.length > 0) card.appendChild(tagsEl);
     card.appendChild(metaEl);
     card.appendChild(actionsEl);
 
@@ -344,6 +291,7 @@ function clearNoteForm() {
 function loadNoteIntoForm(id) {
   const note = notes.find((n) => n.id === id);
   if (!note) return;
+
   editingNoteId = id;
   document.getElementById("noteId").value = note.id;
   document.getElementById("titleInput").value = note.title;
@@ -365,7 +313,7 @@ async function handleDeleteNote(id) {
   if (!ok) return;
 
   notes = notes.filter((n) => n.id !== id);
-  renderNoteCategoryFilter();
+  renderNotesCategoryFilter();
   renderNotes();
 }
 
@@ -387,11 +335,10 @@ async function handleNoteFormSubmit(event) {
     : [];
 
   if (editingNoteId) {
-    // edição
     const index = notes.findIndex((n) => n.id === editingNoteId);
     if (index === -1) return;
 
-    const updatedNote = {
+    const updated = {
       ...notes[index],
       title,
       category,
@@ -399,58 +346,50 @@ async function handleNoteFormSubmit(event) {
       content,
     };
 
-    const saved = await updateNoteInDb(updatedNote);
+    const saved = await updateNoteInDb(updated);
     if (!saved) return;
 
     notes[index] = saved;
   } else {
-    // nova nota
-    const newNote = {
-      title,
-      category,
-      tags,
-      content,
-    };
-
+    const newNote = { title, category, tags, content };
     const saved = await insertNoteToDb(newNote);
     if (!saved) return;
 
     notes.unshift(saved);
   }
 
-  renderNoteCategoryFilter();
+  renderNotesCategoryFilter();
   renderNotes();
   clearNoteForm();
 }
 
 // =========================
-// GASTOS – localStorage
+// GASTOS (localStorage + Chart.js)
 // =========================
 
-function loadExpensesFromStorage() {
-  const raw = localStorage.getItem(EXPENSES_STORAGE_KEY);
-  if (!raw) {
-    expenses = [];
-    return;
-  }
+const EXPENSES_KEY = "luizExpensesV1";
+let expenses = [];
+let expensesChart = null;
+
+function loadExpenses() {
   try {
-    expenses = JSON.parse(raw);
+    const raw = localStorage.getItem(EXPENSES_KEY);
+    expenses = raw ? JSON.parse(raw) : [];
   } catch (e) {
-    console.error("Erro ao ler despesas do localStorage, resetando…", e);
+    console.error("Erro ao ler gastos do localStorage:", e);
     expenses = [];
   }
 }
 
-function saveExpensesToStorage() {
-  localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
+function saveExpenses() {
+  localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
 }
 
 function getUniqueExpenseCategories() {
   const set = new Set();
   expenses.forEach((e) => {
-    if (e.category && e.category.trim() !== "") {
-      set.add(e.category.trim());
-    }
+    const cat = (e.category || "").trim();
+    if (cat) set.add(cat);
   });
   return Array.from(set).sort();
 }
@@ -460,96 +399,94 @@ function renderExpenseCategoryFilter() {
   if (!select) return;
 
   const current = select.value;
-
   select.innerHTML = "";
+
   const optAll = document.createElement("option");
   optAll.value = "";
   optAll.textContent = "Todas";
   select.appendChild(optAll);
 
   const cats = getUniqueExpenseCategories();
-  cats.forEach((cat) => {
+  cats.forEach((c) => {
     const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
+    opt.value = c;
+    opt.textContent = c;
     select.appendChild(opt);
   });
 
-  select.value = current || "";
+  const exists = Array.from(select.options).some((o) => o.value === current);
+  select.value = exists ? current : "";
 }
 
-function renderExpensesTable() {
+function renderExpenses() {
   const tbody = document.getElementById("expensesTableBody");
-  const categoryFilter = document.getElementById("expenseCategoryFilter").value;
+  const totalEl = document.getElementById("expensesTotal");
+  const categoryFilter =
+    document.getElementById("expenseCategoryFilter")?.value || "";
 
-  let filtered = expenses;
+  if (!tbody || !totalEl) return;
+
+  let list = expenses.slice();
+
   if (categoryFilter) {
-    filtered = expenses.filter((e) => e.category === categoryFilter);
+    list = list.filter((e) => (e.category || "") === categoryFilter);
   }
 
   tbody.innerHTML = "";
-  if (filtered.length === 0) {
+  let total = 0;
+
+  list.forEach((exp) => {
+    total += Number(exp.amount || 0);
+
     const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.colSpan = 4;
-    td.textContent = "Nenhum gasto registrado.";
-    td.style.color = "#9ca3af";
-    td.style.fontSize = "0.85rem";
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-    return;
-  }
 
-  filtered
-    .slice()
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .forEach((e) => {
-      const tr = document.createElement("tr");
+    const d = document.createElement("td");
+    d.textContent = exp.date ? new Date(exp.date).toLocaleDateString("pt-BR") : "";
 
-      const tdDate = document.createElement("td");
-      tdDate.textContent = formatDateBR(e.date);
+    const desc = document.createElement("td");
+    desc.textContent = exp.description;
 
-      const tdDesc = document.createElement("td");
-      tdDesc.textContent = e.desc;
+    const cat = document.createElement("td");
+    cat.textContent = exp.category || "Sem categoria";
 
-      const tdCat = document.createElement("td");
-      tdCat.textContent = e.category;
-
-      const tdVal = document.createElement("td");
-      tdVal.textContent = formatCurrencyBRL(e.value);
-
-      tr.appendChild(tdDate);
-      tr.appendChild(tdDesc);
-      tr.appendChild(tdCat);
-      tr.appendChild(tdVal);
-
-      tbody.appendChild(tr);
+    const val = document.createElement("td");
+    val.textContent = Number(exp.amount || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     });
-}
 
-function renderExpensesSummaryAndChart() {
-  const totalEl = document.getElementById("expensesTotal");
-  const categoryFilter = document.getElementById("expenseCategoryFilter").value;
-
-  let filtered = expenses;
-  if (categoryFilter) {
-    filtered = expenses.filter((e) => e.category === categoryFilter);
-  }
-
-  const total = filtered.reduce((sum, e) => sum + e.value, 0);
-  totalEl.textContent = formatCurrencyBRL(total);
-
-  // agrupar por categoria
-  const map = new Map();
-  filtered.forEach((e) => {
-    const cat = e.category || "Sem categoria";
-    map.set(cat, (map.get(cat) || 0) + e.value);
+    tr.appendChild(d);
+    tr.appendChild(desc);
+    tr.appendChild(cat);
+    tr.appendChild(val);
+    tbody.appendChild(tr);
   });
 
-  const labels = Array.from(map.keys());
-  const values = Array.from(map.values());
+  totalEl.textContent = total.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 
-  const ctx = document.getElementById("expensesChart").getContext("2d");
+  renderExpensesChart(list);
+}
+
+function renderExpensesChart(list) {
+  const canvas = document.getElementById("expensesChart");
+  if (!canvas || !window.Chart) return;
+
+  const ctx = canvas.getContext("2d");
+
+  // Soma por categoria
+  const totalsByCategory = new Map();
+  list.forEach((exp) => {
+    const raw = (exp.category || "Sem categoria").trim();
+    const cat = raw === "" ? "Sem categoria" : raw;
+    const current = totalsByCategory.get(cat) || 0;
+    totalsByCategory.set(cat, current + Number(exp.amount || 0));
+  });
+
+  const labels = Array.from(totalsByCategory.keys()).sort();
+  const values = labels.map((c) => totalsByCategory.get(c));
 
   if (expensesChart) {
     expensesChart.destroy();
@@ -561,7 +498,7 @@ function renderExpensesSummaryAndChart() {
       labels,
       datasets: [
         {
-          label: "Total por categoria",
+          label: "Gastos por categoria (R$)",
           data: values,
         },
       ],
@@ -569,21 +506,11 @@ function renderExpensesSummaryAndChart() {
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          display: false,
-        },
+        legend: { display: false },
       },
       scales: {
-        x: {
-          ticks: { color: "#9ca3af" },
-          grid: { display: false },
-        },
         y: {
-          ticks: {
-            color: "#9ca3af",
-            callback: (val) => formatCurrencyBRL(val),
-          },
-          grid: { color: "#111827" },
+          beginAtZero: true,
         },
       },
     },
@@ -593,477 +520,61 @@ function renderExpensesSummaryAndChart() {
 function handleExpenseFormSubmit(event) {
   event.preventDefault();
 
-  const desc = document.getElementById("expenseDesc").value.trim();
-  const category = document.getElementById("expenseCategory").value.trim();
-  const valueStr = document.getElementById("expenseValue").value.trim();
+  const description = document
+    .getElementById("expenseDescription")
+    .value.trim();
+  const category = document
+    .getElementById("expenseCategory")
+    .value.trim();
+  const amountStr = document.getElementById("expenseAmount").value;
   const dateStr = document.getElementById("expenseDate").value;
 
-  if (!desc || !category || !valueStr || !dateStr) {
-    alert("Preencha descrição, categoria, valor e data.");
+  const amount = Number(amountStr.replace(",", "."));
+
+  if (!description || !amount || !dateStr) {
+    alert("Preencha descrição, valor e data.");
     return;
   }
 
-  const value = Number(valueStr.replace(",", "."));
-  if (Number.isNaN(value) || value <= 0) {
-    alert("Informe um valor válido.");
-    return;
-  }
-
-  const expense = {
+  const exp = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-    desc,
+    description,
     category,
-    value,
+    amount,
     date: dateStr,
   };
 
-  expenses.push(expense);
-  saveExpensesToStorage();
+  expenses.push(exp);
+  saveExpenses();
   renderExpenseCategoryFilter();
-  renderExpensesTable();
-  renderExpensesSummaryAndChart();
+  renderExpenses();
 
   document.getElementById("expenseForm").reset();
 }
 
 // =========================
-// WIKI – Supabase
+// Alternar entre ANOTAÇÕES / GASTOS
 // =========================
 
-async function loadWikiFromDb() {
-  if (!db) return [];
-  const { data, error } = await db
-    .from("wiki_commands")
-    .select("*")
-    .order("created_at", { ascending: false });
+const modeNotes = document.getElementById("modeNotes");
+const modeExpenses = document.getElementById("modeExpenses");
+const notesView = document.getElementById("notesView");
+const expensesView = document.getElementById("expensesView");
 
-  if (error) {
-    console.error("Erro ao buscar wiki_commands:", error);
-    return [];
-  }
+function activateMode(mode) {
+  if (!modeNotes || !modeExpenses || !notesView || !expensesView) return;
 
-  return data.map((row) => ({
-    id: row.id,
-    title: row.title,
-    vendor: row.vendor,
-    deviceType: row.device_type,
-    model: row.model,
-    context: row.context,
-    command: row.command,
-    description: row.description,
-    tags: row.tags || [],
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  }));
-}
-
-async function insertWikiCommandToDb(cmd) {
-  if (!db) return null;
-  const { data, error } = await db
-    .from("wiki_commands")
-    .insert({
-      title: cmd.title,
-      vendor: cmd.vendor,
-      device_type: cmd.deviceType,
-      model: cmd.model,
-      context: cmd.context,
-      command: cmd.command,
-      description: cmd.description,
-      tags: cmd.tags,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Erro ao inserir comando na wiki:", error);
-    alert("Erro ao salvar comando na wiki.");
-    return null;
-  }
-
-  return {
-    id: data.id,
-    title: data.title,
-    vendor: data.vendor,
-    deviceType: data.device_type,
-    model: data.model,
-    context: data.context,
-    command: data.command,
-    description: data.description,
-    tags: data.tags || [],
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
-}
-
-async function updateWikiCommandInDb(cmd) {
-  if (!db) return null;
-  const { data, error } = await db
-    .from("wiki_commands")
-    .update({
-      title: cmd.title,
-      vendor: cmd.vendor,
-      device_type: cmd.deviceType,
-      model: cmd.model,
-      context: cmd.context,
-      command: cmd.command,
-      description: cmd.description,
-      tags: cmd.tags,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", cmd.id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Erro ao atualizar comando na wiki:", error);
-    alert("Erro ao atualizar comando na wiki.");
-    return null;
-  }
-
-  return {
-    id: data.id,
-    title: data.title,
-    vendor: data.vendor,
-    deviceType: data.device_type,
-    model: data.model,
-    context: data.context,
-    command: data.command,
-    description: data.description,
-    tags: data.tags || [],
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
-}
-
-async function deleteWikiCommandFromDb(id) {
-  if (!db) return false;
-  const { error } = await db.from("wiki_commands").delete().eq("id", id);
-  if (error) {
-    console.error("Erro ao excluir comando da wiki:", error);
-    alert("Erro ao excluir comando da wiki.");
-    return false;
-  }
-  return true;
-}
-
-function getUniqueWikiField(field) {
-  const set = new Set();
-  wikiCommands.forEach((c) => {
-    const val = c[field];
-    if (val && String(val).trim() !== "") {
-      set.add(String(val).trim());
-    }
-  });
-  return Array.from(set).sort();
-}
-
-function renderWikiFilters() {
-  const vendorSelect = document.getElementById("wikiVendorFilter");
-  const deviceTypeSelect = document.getElementById("wikiDeviceTypeFilter");
-  const contextSelect = document.getElementById("wikiContextFilter");
-
-  const currentVendor = vendorSelect.value;
-  const currentDevice = deviceTypeSelect.value;
-  const currentContext = contextSelect.value;
-
-  // vendor
-  vendorSelect.innerHTML = "";
-  let opt = document.createElement("option");
-  opt.value = "";
-  opt.textContent = "Todos";
-  vendorSelect.appendChild(opt);
-  getUniqueWikiField("vendor").forEach((v) => {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    vendorSelect.appendChild(o);
-  });
-  vendorSelect.value = currentVendor || "";
-
-  // device type
-  deviceTypeSelect.innerHTML = "";
-  opt = document.createElement("option");
-  opt.value = "";
-  opt.textContent = "Todos";
-  deviceTypeSelect.appendChild(opt);
-  getUniqueWikiField("deviceType").forEach((v) => {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    deviceTypeSelect.appendChild(o);
-  });
-  deviceTypeSelect.value = currentDevice || "";
-
-  // context
-  contextSelect.innerHTML = "";
-  opt = document.createElement("option");
-  opt.value = "";
-  opt.textContent = "Todos";
-  contextSelect.appendChild(opt);
-  getUniqueWikiField("context").forEach((v) => {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = v;
-    contextSelect.appendChild(o);
-  });
-  contextSelect.value = currentContext || "";
-}
-
-function renderWikiList() {
-  const listEl = document.getElementById("wikiList");
-  const search = document.getElementById("wikiSearch").value.toLowerCase().trim();
-  const vendorFilter = document.getElementById("wikiVendorFilter").value;
-  const deviceFilter = document.getElementById("wikiDeviceTypeFilter").value;
-  const contextFilter = document.getElementById("wikiContextFilter").value;
-
-  let filtered = wikiCommands.filter((cmd) => {
-    if (vendorFilter && cmd.vendor !== vendorFilter) return false;
-    if (deviceFilter && cmd.deviceType !== deviceFilter) return false;
-    if (contextFilter && cmd.context !== contextFilter) return false;
-
-    if (!search) return true;
-
-    const haystack =
-      (cmd.title || "") +
-      " " +
-      (cmd.vendor || "") +
-      " " +
-      (cmd.deviceType || "") +
-      " " +
-      (cmd.model || "") +
-      " " +
-      (cmd.context || "") +
-      " " +
-      (cmd.command || "") +
-      " " +
-      (cmd.description || "") +
-      " " +
-      (cmd.tags || []).join(" ");
-
-    return haystack.toLowerCase().includes(search);
-  });
-
-  listEl.innerHTML = "";
-  if (filtered.length === 0) {
-    const p = document.createElement("p");
-    p.textContent = "Nenhum comando encontrado.";
-    p.style.fontSize = "0.85rem";
-    p.style.color = "#9ca3af";
-    listEl.appendChild(p);
-    return;
-  }
-
-  filtered.forEach((cmd) => {
-    const card = document.createElement("article");
-    card.className = "wiki-card";
-
-    const header = document.createElement("div");
-    header.className = "wiki-header";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "wiki-title";
-    titleEl.textContent = cmd.title;
-
-    const metaTop = document.createElement("div");
-    metaTop.className = "wiki-meta";
-
-    if (cmd.vendor) {
-      const b = document.createElement("span");
-      b.className = "badge badge-primary";
-      b.textContent = cmd.vendor;
-      metaTop.appendChild(b);
-    }
-    if (cmd.deviceType) {
-      const b = document.createElement("span");
-      b.className = "badge";
-      b.textContent = cmd.deviceType;
-      metaTop.appendChild(b);
-    }
-    if (cmd.model) {
-      const b = document.createElement("span");
-      b.className = "badge";
-      b.textContent = "Modelo: " + cmd.model;
-      metaTop.appendChild(b);
-    }
-    if (cmd.context) {
-      const b = document.createElement("span");
-      b.className = "badge";
-      b.textContent = "Contexto: " + cmd.context;
-      metaTop.appendChild(b);
-    }
-
-    header.appendChild(titleEl);
-    header.appendChild(metaTop);
-
-    const commandEl = document.createElement("pre");
-    commandEl.className = "wiki-command";
-    commandEl.textContent = cmd.command;
-
-    const descriptionEl = document.createElement("div");
-    descriptionEl.className = "wiki-description";
-    descriptionEl.textContent = cmd.description || "";
-
-    const tagsEl = document.createElement("div");
-    tagsEl.className = "wiki-tags";
-    (cmd.tags || []).forEach((tag) => {
-      if (!tag) return;
-      const span = document.createElement("span");
-      span.className = "badge";
-      span.textContent = "#" + tag;
-      tagsEl.appendChild(span);
-    });
-
-    const footer = document.createElement("div");
-    footer.className = "wiki-footer";
-
-    const metaDates = document.createElement("div");
-    const created = formatDateTimeBR(cmd.createdAt);
-    const updated =
-      cmd.updatedAt && cmd.updatedAt !== cmd.createdAt
-        ? " • Atualizado: " + formatDateTimeBR(cmd.updatedAt)
-        : "";
-    metaDates.textContent = `Criado: ${created}${updated}`;
-
-    const actions = document.createElement("div");
-    actions.className = "wiki-actions";
-
-    const editBtn = document.createElement("button");
-    editBtn.className = "btn btn-secondary";
-    editBtn.textContent = "Editar";
-    editBtn.addEventListener("click", () => loadWikiIntoForm(cmd.id));
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn btn-secondary";
-    deleteBtn.textContent = "Excluir";
-    deleteBtn.addEventListener("click", () => handleDeleteWiki(cmd.id));
-
-    actions.appendChild(editBtn);
-    actions.appendChild(deleteBtn);
-
-    footer.appendChild(metaDates);
-    footer.appendChild(actions);
-
-    card.appendChild(header);
-    card.appendChild(commandEl);
-    if (cmd.description) card.appendChild(descriptionEl);
-    if (cmd.tags && cmd.tags.length > 0) card.appendChild(tagsEl);
-    card.appendChild(footer);
-
-    listEl.appendChild(card);
-  });
-}
-
-function clearWikiForm() {
-  editingWikiId = null;
-  document.getElementById("wikiId").value = "";
-  document.getElementById("wikiTitle").value = "";
-  document.getElementById("wikiVendor").value = "";
-  document.getElementById("wikiDeviceType").value = "";
-  document.getElementById("wikiModel").value = "";
-  document.getElementById("wikiContext").value = "";
-  document.getElementById("wikiCommand").value = "";
-  document.getElementById("wikiDescription").value = "";
-  document.getElementById("wikiTags").value = "";
-}
-
-function loadWikiIntoForm(id) {
-  const cmd = wikiCommands.find((c) => c.id === id);
-  if (!cmd) return;
-  editingWikiId = id;
-  document.getElementById("wikiId").value = cmd.id;
-  document.getElementById("wikiTitle").value = cmd.title || "";
-  document.getElementById("wikiVendor").value = cmd.vendor || "";
-  document.getElementById("wikiDeviceType").value = cmd.deviceType || "";
-  document.getElementById("wikiModel").value = cmd.model || "";
-  document.getElementById("wikiContext").value = cmd.context || "";
-  document.getElementById("wikiCommand").value = cmd.command || "";
-  document.getElementById("wikiDescription").value = cmd.description || "";
-  document.getElementById("wikiTags").value = (cmd.tags || []).join(", ");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-async function handleDeleteWiki(id) {
-  const cmd = wikiCommands.find((c) => c.id === id);
-  const title = cmd ? cmd.title : "";
-  const confirmDelete = window.confirm(
-    `Tem certeza que deseja excluir o comando "${title}"?`
-  );
-  if (!confirmDelete) return;
-
-  const ok = await deleteWikiCommandFromDb(id);
-  if (!ok) return;
-
-  wikiCommands = wikiCommands.filter((c) => c.id !== id);
-  renderWikiFilters();
-  renderWikiList();
-}
-
-async function handleWikiFormSubmit(event) {
-  event.preventDefault();
-
-  const title = document.getElementById("wikiTitle").value.trim();
-  const vendor = document.getElementById("wikiVendor").value.trim();
-  const deviceType = document.getElementById("wikiDeviceType").value.trim();
-  const model = document.getElementById("wikiModel").value.trim();
-  const context = document.getElementById("wikiContext").value.trim();
-  const command = document.getElementById("wikiCommand").value.trim();
-  const description = document
-    .getElementById("wikiDescription")
-    .value.trim();
-  const tagsRaw = document.getElementById("wikiTags").value.trim();
-
-  if (!title || !vendor || !deviceType || !command) {
-    alert(
-      "Preencha pelo menos: Título, Fabricante, Equipamento e Comando."
-    );
-    return;
-  }
-
-  const tags = tagsRaw
-    ? tagsRaw.split(",").map((t) => t.trim()).filter((t) => t !== "")
-    : [];
-
-  if (editingWikiId) {
-    const index = wikiCommands.findIndex((c) => c.id === editingWikiId);
-    if (index === -1) return;
-
-    const updated = {
-      ...wikiCommands[index],
-      title,
-      vendor,
-      deviceType,
-      model,
-      context,
-      command,
-      description,
-      tags,
-    };
-
-    const saved = await updateWikiCommandInDb(updated);
-    if (!saved) return;
-
-    wikiCommands[index] = saved;
+  if (mode === "notes") {
+    modeNotes.classList.add("mode-card-active");
+    modeExpenses.classList.remove("mode-card-active");
+    notesView.classList.add("active-view");
+    expensesView.classList.remove("active-view");
   } else {
-    const newCmd = {
-      title,
-      vendor,
-      deviceType,
-      model,
-      context,
-      command,
-      description,
-      tags,
-    };
-
-    const saved = await insertWikiCommandToDb(newCmd);
-    if (!saved) return;
-
-    wikiCommands.unshift(saved);
+    modeExpenses.classList.add("mode-card-active");
+    modeNotes.classList.remove("mode-card-active");
+    expensesView.classList.add("active-view");
+    notesView.classList.remove("active-view");
   }
-
-  renderWikiFilters();
-  renderWikiList();
-  clearWikiForm();
 }
 
 // =========================
@@ -1071,63 +582,44 @@ async function handleWikiFormSubmit(event) {
 // =========================
 
 document.addEventListener("DOMContentLoaded", async () => {
-  setupTabs();
-
-  // ---- Notas ----
-  const noteForm = document.getElementById("noteForm");
-  noteForm.addEventListener("submit", handleNoteFormSubmit);
-  document
-    .getElementById("clearFormBtn")
-    .addEventListener("click", clearNoteForm);
-  document
-    .getElementById("searchInput")
-    .addEventListener("input", renderNotes);
-  document
-    .getElementById("categoryFilter")
-    .addEventListener("change", renderNotes);
-  document
-    .getElementById("sortSelect")
-    .addEventListener("change", renderNotes);
-
+  // --- Anotações ---
   notes = await loadNotesFromDb();
-  renderNoteCategoryFilter();
+  renderNotesCategoryFilter();
   renderNotes();
 
-  // ---- Gastos ----
-  loadExpensesFromStorage();
+  const noteForm = document.getElementById("noteForm");
+  noteForm?.addEventListener("submit", handleNoteFormSubmit);
+
+  document
+    .getElementById("clearFormBtn")
+    ?.addEventListener("click", clearNoteForm);
+
+  document
+    .getElementById("searchInput")
+    ?.addEventListener("input", renderNotes);
+
+  document
+    .getElementById("categoryFilter")
+    ?.addEventListener("change", renderNotes);
+
+  document
+    .getElementById("sortSelect")
+    ?.addEventListener("change", renderNotes);
+
+  // --- Gastos ---
+  loadExpenses();
   renderExpenseCategoryFilter();
-  renderExpensesTable();
-  renderExpensesSummaryAndChart();
+  renderExpenses();
+
   document
     .getElementById("expenseForm")
-    .addEventListener("submit", handleExpenseFormSubmit);
+    ?.addEventListener("submit", handleExpenseFormSubmit);
+
   document
     .getElementById("expenseCategoryFilter")
-    .addEventListener("change", () => {
-      renderExpensesTable();
-      renderExpensesSummaryAndChart();
-    });
+    ?.addEventListener("change", renderExpenses);
 
-  // ---- Wiki ----
-  wikiCommands = await loadWikiFromDb();
-  renderWikiFilters();
-  renderWikiList();
-  document
-    .getElementById("wikiForm")
-    .addEventListener("submit", handleWikiFormSubmit);
-  document
-    .getElementById("wikiClearBtn")
-    .addEventListener("click", clearWikiForm);
-  document
-    .getElementById("wikiSearch")
-    .addEventListener("input", renderWikiList);
-  document
-    .getElementById("wikiVendorFilter")
-    .addEventListener("change", renderWikiList);
-  document
-    .getElementById("wikiDeviceTypeFilter")
-    .addEventListener("change", renderWikiList);
-  document
-    .getElementById("wikiContextFilter")
-    .addEventListener("change", renderWikiList);
+  // --- Switch de visão ---
+  modeNotes?.addEventListener("click", () => activateMode("notes"));
+  modeExpenses?.addEventListener("click", () => activateMode("expenses"));
 });

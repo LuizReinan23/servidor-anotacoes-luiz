@@ -2,52 +2,53 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Servidor de Anotações, Gastos & Wiki - Luiz</title>
+  <title>Servidor de Anotações & Gastos - Luiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Supabase JS v2 -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <!-- Chart.js para gráficos de gastos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Se quiser usar a logo como favicon, descomente e coloque o nome do arquivo -->
+  <!-- <link rel="icon" type="image/png" href="logo-notas.png" /> -->
 </head>
 <body>
-  <header class="top-header">
-    <div class="logo-area">
-      <!-- ajuste o src se o nome do arquivo da logo for outro -->
-      <div class="logo-circle">LF</div>
-      <div>
-        <h1>Servidor de Anotações &amp; Gastos</h1>
-        <p>Central do Luiz para estudos, pesquisas e controle financeiro</p>
-      </div>
+  <!-- HEADER -->
+  <header class="app-header">
+  <div class="app-header-inner">
+    <img src="logo-notas.png" alt="Logo Notas & Financeiro" class="app-logo" />
+    <div>
+      <h1>Servidor de Anotações</h1>
+      <p>Central de estudos, pesquisas, ideias e controle financeiro</p>
+    </div>
+  </div>
+</header>
+
+    <!-- BOTÕES PARA TROCAR ENTRE ANOTAÇÕES / GASTOS -->
+    <div class="view-modes">
+      <button id="modeNotes" class="mode-card mode-card-active">
+        <div class="mode-card-title">Anotações</div>
+        <div class="mode-card-subtitle">
+          Estudos, pesquisas, protocolos, comandos…
+        </div>
+      </button>
+
+      <button id="modeExpenses" class="mode-card">
+        <div class="mode-card-title">Gastos</div>
+        <div class="mode-card-subtitle">
+          Contas do mês, categorias e gráficos
+        </div>
+      </button>
     </div>
   </header>
 
   <main class="page-container">
-    <!-- Tabs -->
-    <nav class="main-tabs">
-      <button class="tab-btn active" data-tab="notes">
-        Anotações
-        <span class="tab-subtitle">Estudos, pesquisas, protocolos, comandos…</span>
-      </button>
-      <button class="tab-btn" data-tab="expenses">
-        Gastos
-        <span class="tab-subtitle">Contas do mês, categorias e gráficos</span>
-      </button>
-      <button class="tab-btn" data-tab="wiki">
-        Wiki de comandos
-        <span class="tab-subtitle">OLT, switches, roteadores e mais</span>
-      </button>
-    </nav>
-
-    <!-- ===================== TAB: ANOTAÇÕES ===================== -->
-    <section id="tab-notes" class="tab-content active">
-      <div class="grid-2">
-        <!-- Formulário de anotação -->
-        <section class="panel">
+    <!-- ========================= -->
+    <!-- VISÃO: ANOTAÇÕES -->
+    <!-- ========================= -->
+    <section id="notesView" class="page-section active-view">
+      <main class="app-main">
+        <!-- FORMULÁRIO (ESQUERDA) -->
+        <section class="panel panel-left">
           <h2>Nova anotação / Editar</h2>
-          <form id="noteForm" class="form">
+
+          <form id="noteForm">
             <input type="hidden" id="noteId" />
 
             <div class="form-group">
@@ -65,7 +66,7 @@
               <input
                 type="text"
                 id="categoryInput"
-                placeholder="Ex: T.I & Redes, Projetos, Automação, Vida pessoal…"
+                placeholder="Ex: T.I & Redes, Projetos, Automação, Vida pessoal..."
                 list="categorySuggestions"
                 required
               />
@@ -105,19 +106,17 @@
           </form>
         </section>
 
-        <!-- Lista de anotações -->
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Anotações</h2>
-          </div>
+        <!-- LISTA / FILTROS (DIREITA) -->
+        <section class="panel panel-right">
+          <h2>Anotações</h2>
 
-          <div class="filters-row">
+          <div class="filters">
             <div class="form-group">
               <label for="searchInput">Buscar</label>
               <input
                 type="text"
                 id="searchInput"
-                placeholder="Busque por título, conteúdo ou tag…"
+                placeholder="Busque por título, conteúdo ou tag..."
               />
             </div>
 
@@ -138,27 +137,28 @@
             </div>
           </div>
 
-          <div id="notesList" class="notes-list"></div>
+          <div id="notesList" class="notes-list">
+            <!-- Cards de notas via JS -->
+          </div>
         </section>
-      </div>
-
-      <footer class="section-footer">
-        <small>Anotações salvas no Supabase.</small>
-      </footer>
+      </main>
     </section>
 
-    <!-- ===================== TAB: GASTOS ===================== -->
-    <section id="tab-expenses" class="tab-content">
-      <div class="grid-2">
-        <!-- Formulário de gastos -->
-        <section class="panel">
+    <!-- ========================= -->
+    <!-- VISÃO: GASTOS -->
+    <!-- ========================= -->
+    <section id="expensesView" class="page-section">
+      <main class="app-main">
+        <!-- FORMULÁRIO DE GASTOS (ESQUERDA) -->
+        <section class="panel panel-left">
           <h2>Gastos do mês</h2>
-          <form id="expenseForm" class="form">
+
+          <form id="expenseForm">
             <div class="form-group">
-              <label for="expenseDesc">Descrição</label>
+              <label for="expenseDescription">Descrição</label>
               <input
                 type="text"
-                id="expenseDesc"
+                id="expenseDescription"
                 placeholder="Ex: Conta de luz, Mercado, Netflix"
                 required
               />
@@ -169,27 +169,16 @@
               <input
                 type="text"
                 id="expenseCategory"
-                placeholder="Ex: Moradia, Alimentação, Lazer…"
-                list="expenseCategorySuggestions"
-                required
+                placeholder="Ex: Moradia, Alimentação, Lazer..."
               />
-              <datalist id="expenseCategorySuggestions">
-                <option value="Moradia"></option>
-                <option value="Alimentação"></option>
-                <option value="Lazer"></option>
-                <option value="Saúde"></option>
-                <option value="Transporte"></option>
-                <option value="Educação"></option>
-              </datalist>
             </div>
 
             <div class="form-group">
-              <label for="expenseValue">Valor (R$)</label>
+              <label for="expenseAmount">Valor (R$)</label>
               <input
                 type="number"
                 step="0.01"
-                min="0"
-                id="expenseValue"
+                id="expenseAmount"
                 placeholder="Ex: 250.90"
                 required
               />
@@ -197,23 +186,33 @@
 
             <div class="form-group">
               <label for="expenseDate">Data</label>
-              <input type="date" id="expenseDate" required />
+              <input
+                type="date"
+                id="expenseDate"
+                required
+              />
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Adicionar gasto</button>
+              <button type="submit" class="btn btn-primary">
+                Adicionar gasto
+              </button>
             </div>
           </form>
         </section>
 
-        <!-- Resumo + gráfico -->
-        <section class="panel">
+        <!-- RESUMO / FILTRO / GRÁFICO / LISTA (DIREITA) -->
+        <section class="panel panel-right">
           <h2>Resumo e gráfico</h2>
-          <p class="summary-text">
-            Total do período: <strong id="expensesTotal">R$ 0,00</strong>
-          </p>
 
-          <div class="filters-row">
+          <div class="expenses-summary">
+            <p>
+              <strong>Total do período:</strong>
+              <span id="expensesTotal">R$ 0,00</span>
+            </p>
+          </div>
+
+          <div class="expenses-filter">
             <div class="form-group">
               <label for="expenseCategoryFilter">Filtrar por categoria</label>
               <select id="expenseCategoryFilter">
@@ -222,19 +221,12 @@
             </div>
           </div>
 
-          <div class="chart-wrapper">
-            <canvas id="expensesChart" height="140"></canvas>
+          <div class="expenses-chart-wrapper">
+            <canvas id="expensesChart" height="200"></canvas>
           </div>
-        </section>
-      </div>
 
-      <!-- Lista de gastos -->
-      <section class="panel panel-full">
-        <div class="panel-header">
-          <h2>Lista de gastos</h2>
-        </div>
-        <div class="table-wrapper">
-          <table class="table">
+          <h3>Lista de gastos</h3>
+          <table class="expenses-table">
             <thead>
               <tr>
                 <th>Data</th>
@@ -245,160 +237,20 @@
             </thead>
             <tbody id="expensesTableBody"></tbody>
           </table>
-        </div>
-      </section>
-
-      <footer class="section-footer">
-        <small>Gastos salvos no navegador (localStorage).</small>
-      </footer>
-    </section>
-
-    <!-- ===================== TAB: WIKI ===================== -->
-    <section id="tab-wiki" class="tab-content">
-      <div class="grid-2">
-        <!-- Formulário Wiki -->
-        <section class="panel">
-          <h2>Nova entrada na Wiki / Editar</h2>
-          <form id="wikiForm" class="form">
-            <input type="hidden" id="wikiId" />
-
-            <div class="form-group">
-              <label for="wikiTitle">Título</label>
-              <input
-                type="text"
-                id="wikiTitle"
-                placeholder="Ex: Listar ONUs pendentes ZTE C320"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiVendor">Fabricante</label>
-              <input
-                type="text"
-                id="wikiVendor"
-                placeholder="Ex: ZTE, Datacom, Huawei…"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiDeviceType">Equipamento</label>
-              <input
-                type="text"
-                id="wikiDeviceType"
-                placeholder="Ex: OLT, Switch, Router…"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiModel">Modelo</label>
-              <input
-                type="text"
-                id="wikiModel"
-                placeholder="Ex: C320, C600, DM4610…"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiContext">Contexto / sessão</label>
-              <input
-                type="text"
-                id="wikiContext"
-                placeholder="Ex: GPON, VLAN, PPPoE, Interface…"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiCommand">Comando</label>
-              <textarea
-                id="wikiCommand"
-                rows="4"
-                placeholder="Cole aqui o comando, com quebras de linha se precisar."
-                required
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="wikiDescription">Descrição / Observações</label>
-              <textarea
-                id="wikiDescription"
-                rows="4"
-                placeholder="Explique o que o comando faz, quando usar, cuidados, etc."
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="wikiTags">Tags (separadas por vírgula)</label>
-              <input
-                type="text"
-                id="wikiTags"
-                placeholder="Ex: onu, vlan, show, authorize"
-              />
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Salvar comando</button>
-              <button type="button" id="wikiClearBtn" class="btn btn-secondary">
-                Limpar formulário
-              </button>
-            </div>
-          </form>
         </section>
-
-        <!-- Lista Wiki -->
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Wiki de comandos</h2>
-          </div>
-
-          <div class="filters-row">
-            <div class="form-group">
-              <label for="wikiSearch">Buscar</label>
-              <input
-                type="text"
-                id="wikiSearch"
-                placeholder="Busque por título, comando, descrição ou tag…"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="wikiVendorFilter">Fabricante</label>
-              <select id="wikiVendorFilter">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="wikiDeviceTypeFilter">Equipamento</label>
-              <select id="wikiDeviceTypeFilter">
-                <option value="">Todos</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="wikiContextFilter">Contexto</label>
-              <select id="wikiContextFilter">
-                <option value="">Todos</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="wikiList" class="wiki-list"></div>
-        </section>
-      </div>
-
-      <footer class="section-footer">
-        <small>Wiki de comandos salva no Supabase.</small>
-      </footer>
+      </main>
     </section>
   </main>
 
+  <footer class="app-footer">
+    <small>
+      Anotações salvas no Supabase · Gastos salvos no navegador (localStorage).
+    </small>
+  </footer>
+
+  <!-- SUPABASE -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // =========================
-    // Supabase Client
-    // =========================
     const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
     const supabaseAnonKey =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZnhoZHd2cnNmbmtneWx0YmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNTM4OTYsImV4cCI6MjA4MDYyOTg5Nn0.jlutOwYLPmJ7y0uwrwyVpuNUJHusRFi5r18-_-xfAxg";
@@ -407,8 +259,13 @@
       supabaseUrl,
       supabaseAnonKey
     );
+    console.log("Supabase client inicializado:", window.supabaseClient);
   </script>
 
+  <!-- CHART.JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- LÓGICA DO APP -->
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,15 +1,10 @@
-/* Reset simples */
+/* RESET SIMPLES */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-html,
-body {
-  height: 100%;
 }
 
 body {
@@ -19,154 +14,148 @@ body {
   color: #e5e7eb;
 }
 
-/* ===================== Layout geral ===================== */
-
-.top-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #111827;
-  background: #020617;
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.logo-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: #f9fafb;
-  font-size: 1rem;
-}
-
-.top-header h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #f9fafb;
-}
-
-.top-header p {
-  font-size: 0.9rem;
-  color: #9ca3af;
-  margin-top: 0.15rem;
-}
+/* LAYOUT GERAL */
 
 .page-container {
+  /* ocupa a largura inteira, sem centralizar */
   width: 100%;
   max-width: none;
   margin: 0;
   padding: 1.5rem;
 }
+/* HEADER */
 
-/* ===================== Tabs ===================== */
-
-.main-tabs {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.tab-btn {
-  position: relative;
+.app-header {
+  padding: 1.25rem 1.5rem 0.5rem 1.5rem;
   background: #020617;
-  border: 1px solid #111827;
-  color: #e5e7eb;
-  padding: 0.75rem 1.1rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  transition: all 0.18s ease;
+  border-bottom: 1px solid #111827;
+  
 }
 
-.tab-btn .tab-subtitle {
-  font-size: 0.75rem;
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.app-logo {
+  width: 70px;
+  height: 70px;
+  border-radius: 0.6rem;
+  object-fit: contain;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-logo-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, #38bdf8, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-logo-fallback {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #e5e7eb;
+}
+
+.app-header-text h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.app-header-text p {
+  font-size: 0.85rem;
   color: #9ca3af;
 }
 
-.tab-btn:hover {
-  border-color: #1d4ed8;
+/* SWITCH DE VISÃO (ANOTAÇÕES x GASTOS) */
+
+.view-modes {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.mode-card {
   background: #020617;
+  border-radius: 0.75rem;
+  border: 1px solid #111827;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
 }
 
-.tab-btn.active {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  color: #f9fafb;
-  border-color: transparent;
+.mode-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e5e7eb;
 }
 
-/* ===================== Painéis ===================== */
+.mode-card-subtitle {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
 
-.tab-content {
+.mode-card-active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4),
+    0 0 40px rgba(37, 99, 235, 0.3);
+}
+
+/* SEÇÕES (UMA POR VEZ) */
+
+.page-section {
   display: none;
+  margin-top: 1.5rem;
 }
 
-.tab-content.active {
+.page-section.active-view {
   display: block;
 }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
+/* LAYOUT DE COLUNAS */
 
-@media (max-width: 1024px) {
-  .grid-2 {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.app-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 1rem;
 }
 
 .panel {
   background: #020617;
-  border-radius: 1rem;
-  padding: 1.25rem 1.5rem;
+  border-radius: 0.75rem;
   border: 1px solid #111827;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
-}
-
-.panel-full {
-  margin-top: 1rem;
+  padding: 1rem 1.2rem;
 }
 
 .panel h2 {
   font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.9rem;
-  color: #e5e7eb;
+  margin-bottom: 0.75rem;
 }
 
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* ===================== Formulários ===================== */
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-}
+/* FORMULÁRIOS */
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
 }
 
 label {
@@ -177,15 +166,12 @@ label {
 input,
 textarea,
 select {
+  border-radius: 0.45rem;
+  border: 1px solid #1f2937;
   background: #020617;
-  border-radius: 0.6rem;
-  border: 1px solid #111827;
-  padding: 0.6rem 0.7rem;
-  font-size: 0.9rem;
   color: #e5e7eb;
-  outline: none;
-  transition: border-color 0.14s ease, box-shadow 0.14s ease,
-    background-color 0.14s ease;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
 }
 
 input::placeholder,
@@ -196,14 +182,42 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
+  outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
-  background: #020617;
 }
 
 textarea {
   resize: vertical;
-  min-height: 120px;
+}
+
+/* BOTÕES */
+
+.btn {
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #f9fafb;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.btn-secondary:hover {
+  background: #020617;
 }
 
 .form-actions {
@@ -212,54 +226,13 @@ textarea {
   margin-top: 0.5rem;
 }
 
-/* ===================== Botões ===================== */
+/* LISTA DE NOTAS */
 
-.btn {
-  border-radius: 999px;
-  font-size: 0.85rem;
-  padding: 0.55rem 1.1rem;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  color: #f9fafb;
-}
-
-.btn-primary:hover {
-  filter: brightness(1.05);
-}
-
-.btn-secondary {
-  background: #020617;
-  border: 1px solid #374151;
-  color: #d1d5db;
-}
-
-.btn-secondary:hover {
-  background: #020617;
-  border-color: #4b5563;
-}
-
-/* ===================== Anotações ===================== */
-
-.filters-row {
+.filters {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-@media (max-width: 1024px) {
-  .filters-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  margin-bottom: 0.75rem;
 }
 
 .notes-list {
@@ -269,40 +242,35 @@ textarea {
 }
 
 .note-card {
-  border-radius: 0.8rem;
+  background: #020617;
+  border-radius: 0.6rem;
   border: 1px solid #111827;
-  background: radial-gradient(circle at top left, #020617, #020617);
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .note-header {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
-  margin-bottom: 0.4rem;
+  gap: 0.5rem;
 }
 
 .note-title {
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 0.95rem;
-  color: #f9fafb;
+  color: #e5e7eb;
 }
 
 .note-category {
   font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.1);
   color: #93c5fd;
-  border: 1px solid rgba(37, 99, 235, 0.3);
-  white-space: nowrap;
 }
 
 .note-content {
   font-size: 0.85rem;
   color: #d1d5db;
-  margin-bottom: 0.4rem;
   white-space: pre-wrap;
 }
 
@@ -310,172 +278,94 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
-  margin-bottom: 0.4rem;
 }
 
 .note-tag {
   font-size: 0.7rem;
-  padding: 0.15rem 0.45rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
-  background: #020617;
-  border: 1px solid #111827;
-  color: #9ca3af;
+  background: #0f172a;
+  color: #93c5fd;
 }
 
 .note-meta {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #6b7280;
 }
 
 .note-actions {
   display: flex;
   gap: 0.4rem;
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 
-/* ===================== Gastos ===================== */
+/* GASTOS */
 
-.summary-text {
+.expenses-summary {
   font-size: 0.85rem;
-  color: #e5e7eb;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
-.summary-text strong {
-  color: #facc15;
+.expenses-filter {
+  margin-bottom: 0.7rem;
 }
 
-.chart-wrapper {
-  margin-top: 0.75rem;
+.expenses-chart-wrapper {
   background: #020617;
-  border-radius: 0.75rem;
+  border-radius: 0.6rem;
   border: 1px solid #111827;
-  padding: 0.75rem;
+  padding: 0.6rem;
+  margin-bottom: 0.9rem;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
+/* TABELA DE GASTOS */
 
-.table {
+.expenses-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
-.table thead {
+.expenses-table thead {
   background: #020617;
 }
 
-.table th,
-.table td {
-  padding: 0.5rem 0.6rem;
-  text-align: left;
+.expenses-table th,
+.expenses-table td {
+  padding: 0.4rem 0.5rem;
   border-bottom: 1px solid #111827;
 }
 
-.table th {
+.expenses-table th {
+  text-align: left;
   font-weight: 500;
   color: #9ca3af;
 }
 
-.table td {
-  color: #e5e7eb;
+.expenses-table tr:hover td {
+  background: rgba(15, 23, 42, 0.8);
 }
 
-/* ===================== Wiki ===================== */
+/* FOOTER */
 
-.wiki-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.wiki-card {
-  border-radius: 0.8rem;
-  border: 1px solid #111827;
-  background: #020617;
-  padding: 0.85rem 1rem;
-}
-
-.wiki-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.4rem;
-}
-
-.wiki-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #f9fafb;
-}
-
-.wiki-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  font-size: 0.7rem;
-}
-
-.badge {
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  border: 1px solid #111827;
-  background: #020617;
-  color: #9ca3af;
-}
-
-.badge-primary {
-  border-color: rgba(37, 99, 235, 0.4);
-  color: #93c5fd;
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.wiki-command {
-  margin: 0.4rem 0;
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
-  background: #020617;
-  border-radius: 0.5rem;
-  border: 1px solid #111827;
-  padding: 0.55rem 0.7rem;
-  font-size: 0.8rem;
-  white-space: pre-wrap;
-}
-
-.wiki-description {
-  font-size: 0.8rem;
-  color: #d1d5db;
-  margin-bottom: 0.35rem;
-}
-
-.wiki-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-bottom: 0.35rem;
-}
-
-.wiki-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.7rem;
-  color: #6b7280;
-  margin-top: 0.35rem;
-}
-
-.wiki-actions {
-  display: flex;
-  gap: 0.35rem;
-}
-
-/* ===================== Rodapés de seção ===================== */
-
-.section-footer {
-  margin-top: 0.8rem;
+.app-footer {
+  padding: 0.8rem 1.5rem 1.2rem 1.5rem;
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 900px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .view-modes {
+    flex-direction: column;
+  }
 }
