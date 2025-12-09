@@ -1,50 +1,20 @@
 // =========================
-// Supabase Client
+// Supabase (ANOTAÇÕES)
 // =========================
-
-// usamos "db" para não conflitar com window.supabase
 const db = window.supabaseClient;
-
 if (!db) {
-  console.error(
-    "Supabase client não inicializado! Verifique o script no index.html."
-  );
+  console.error("Supabase não inicializado – verifique o script no index.html.");
 }
 
-// =========================
-// ESTADO GLOBAL
-// =========================
-
+// Estado de anotações
 let notes = [];
-let editingId = null;
+let editingNoteId = null;
 
-let expenses = [];
-let expensesChart = null;
-
-// =========================
-// HELPERS GERAIS
-// =========================
-
-function formatDate(isoString) {
-  const d = new Date(isoString);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("pt-BR");
-}
-
-function formatMoney(value) {
-  return (Number(value) || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-// =====================================================
-// =====================  NOTAS  =======================
-// =====================================================
-
-// -------- Supabase: notas --------
+// --- Operações no Supabase ---
 
 async function loadNotesFromDb() {
+  if (!db) return [];
+
   const { data, error } = await db
     .from("notes")
     .select("*")
@@ -67,6 +37,8 @@ async function loadNotesFromDb() {
 }
 
 async function insertNoteToDb(note) {
+  if (!db) return null;
+
   const { data, error } = await db
     .from("notes")
     .insert({
@@ -96,6 +68,8 @@ async function insertNoteToDb(note) {
 }
 
 async function updateNoteInDb(note) {
+  if (!db) return null;
+
   const { data, error } = await db
     .from("notes")
     .update({
@@ -127,20 +101,32 @@ async function updateNoteInDb(note) {
 }
 
 async function deleteNoteFromDb(id) {
-  const { error } = await db.from("notes").delete().eq("id", id);
+  if (!db) return false;
 
+  const { error } = await db.from("notes").delete().eq("id", id);
   if (error) {
     console.error("Erro ao excluir nota no Supabase:", error);
     alert("Erro ao excluir nota no banco.");
     return false;
   }
-
   return true;
 }
 
-// -------- UI: notas --------
+// =========================
+// Utilitários gerais
+// =========================
 
-function getUniqueCategories() {
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("pt-BR");
+}
+
+// =========================
+// UI – ANOTAÇÕES
+// =========================
+
+function getUniqueNoteCategories() {
   const set = new Set();
   notes.forEach((n) => {
     if (n.category && n.category.trim() !== "") {
@@ -150,60 +136,50 @@ function getUniqueCategories() {
   return Array.from(set).sort();
 }
 
-function renderCategoryFilter() {
-  const categoryFilter = document.getElementById("categoryFilter");
-  if (!categoryFilter) return;
+function renderNotesCategoryFilter() {
+  const select = document.getElementById("categoryFilter");
+  if (!select) return;
 
-  const currentValue = categoryFilter.value;
+  const current = select.value;
+  select.innerHTML = "";
 
-  categoryFilter.innerHTML = "";
   const optAll = document.createElement("option");
   optAll.value = "";
   optAll.textContent = "Todas";
-  categoryFilter.appendChild(optAll);
+  select.appendChild(optAll);
 
-  const categories = getUniqueCategories();
-  categories.forEach((cat) => {
+  const cats = getUniqueNoteCategories();
+  cats.forEach((c) => {
     const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    categoryFilter.appendChild(opt);
+    opt.value = c;
+    opt.textContent = c;
+    select.appendChild(opt);
   });
 
-  const exists = Array.from(categoryFilter.options).some(
-    (o) => o.value === currentValue
-  );
-  categoryFilter.value = exists ? currentValue : "";
+  const exists = Array.from(select.options).some((o) => o.value === current);
+  select.value = exists ? current : "";
 }
 
 function renderNotes() {
   const listEl = document.getElementById("notesList");
   if (!listEl) return;
 
-  const searchInput = document.getElementById("searchInput");
-  const searchValue = searchInput
-    ? searchInput.value.toLowerCase().trim()
-    : "";
-
-  const categoryFilterEl = document.getElementById("categoryFilter");
-  const categoryFilter = categoryFilterEl ? categoryFilterEl.value : "";
-
-  const sortSelectEl = document.getElementById("sortSelect");
-  const sortValue = sortSelectEl ? sortSelectEl.value : "newest";
+  const searchValue = (document.getElementById("searchInput")?.value || "")
+    .toLowerCase()
+    .trim();
+  const categoryFilter = document.getElementById("categoryFilter")?.value || "";
+  const sortValue = document.getElementById("sortSelect")?.value || "newest";
 
   let filtered = notes.filter((note) => {
     const matchesCategory =
       !categoryFilter || note.category === categoryFilter;
-
     if (!matchesCategory) return false;
 
     if (!searchValue) return true;
 
     const inTitle = note.title.toLowerCase().includes(searchValue);
     const inContent = note.content.toLowerCase().includes(searchValue);
-    const inCategory = (note.category || "")
-      .toLowerCase()
-      .includes(searchValue);
+    const inCategory = (note.category || "").toLowerCase().includes(searchValue);
     const inTags = (note.tags || [])
       .join(",")
       .toLowerCase()
@@ -227,13 +203,12 @@ function renderNotes() {
   }
 
   listEl.innerHTML = "";
-
   if (filtered.length === 0) {
-    const empty = document.createElement("p");
-    empty.textContent = "Nenhuma anotação encontrada.";
-    empty.style.fontSize = "0.85rem";
-    empty.style.color = "#9ca3af";
-    listEl.appendChild(empty);
+    const p = document.createElement("p");
+    p.textContent = "Nenhuma anotação encontrada.";
+    p.style.fontSize = "0.85rem";
+    p.style.color = "#9ca3af";
+    listEl.appendChild(p);
     return;
   }
 
@@ -296,9 +271,7 @@ function renderNotes() {
 
     card.appendChild(header);
     card.appendChild(contentEl);
-    if (note.tags && note.tags.length > 0) {
-      card.appendChild(tagsEl);
-    }
+    if (note.tags && note.tags.length > 0) card.appendChild(tagsEl);
     card.appendChild(metaEl);
     card.appendChild(actionsEl);
 
@@ -306,8 +279,8 @@ function renderNotes() {
   });
 }
 
-function clearForm() {
-  editingId = null;
+function clearNoteForm() {
+  editingNoteId = null;
   document.getElementById("noteId").value = "";
   document.getElementById("titleInput").value = "";
   document.getElementById("categoryInput").value = "";
@@ -318,7 +291,8 @@ function clearForm() {
 function loadNoteIntoForm(id) {
   const note = notes.find((n) => n.id === id);
   if (!note) return;
-  editingId = id;
+
+  editingNoteId = id;
   document.getElementById("noteId").value = note.id;
   document.getElementById("titleInput").value = note.title;
   document.getElementById("categoryInput").value = note.category || "";
@@ -326,8 +300,6 @@ function loadNoteIntoForm(id) {
   document.getElementById("contentInput").value = note.content;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-// -------- Ações: notas --------
 
 async function handleDeleteNote(id) {
   const note = notes.find((n) => n.id === id);
@@ -341,11 +313,11 @@ async function handleDeleteNote(id) {
   if (!ok) return;
 
   notes = notes.filter((n) => n.id !== id);
-  renderCategoryFilter();
+  renderNotesCategoryFilter();
   renderNotes();
 }
 
-async function handleFormSubmit(event) {
+async function handleNoteFormSubmit(event) {
   event.preventDefault();
 
   const title = document.getElementById("titleInput").value.trim();
@@ -359,17 +331,14 @@ async function handleFormSubmit(event) {
   }
 
   const tags = tagsRaw
-    ? tagsRaw
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t !== "")
+    ? tagsRaw.split(",").map((t) => t.trim()).filter((t) => t !== "")
     : [];
 
-  if (editingId) {
-    const index = notes.findIndex((n) => n.id === editingId);
+  if (editingNoteId) {
+    const index = notes.findIndex((n) => n.id === editingNoteId);
     if (index === -1) return;
 
-    const updatedNote = {
+    const updated = {
       ...notes[index],
       title,
       category,
@@ -377,73 +346,50 @@ async function handleFormSubmit(event) {
       content,
     };
 
-    const saved = await updateNoteInDb(updatedNote);
+    const saved = await updateNoteInDb(updated);
     if (!saved) return;
 
     notes[index] = saved;
   } else {
-    const newNote = {
-      title,
-      category,
-      tags,
-      content,
-    };
-
+    const newNote = { title, category, tags, content };
     const saved = await insertNoteToDb(newNote);
     if (!saved) return;
 
     notes.unshift(saved);
   }
 
-  renderCategoryFilter();
+  renderNotesCategoryFilter();
   renderNotes();
-  clearForm();
+  clearNoteForm();
 }
 
-// =====================================================
-// =====================  GASTOS  ======================
-// =====================================================
+// =========================
+// GASTOS (localStorage + Chart.js)
+// =========================
 
-// -------- Supabase: gastos --------
+const EXPENSES_KEY = "luizExpensesV1";
+let expenses = [];
+let expensesChart = null;
 
-async function loadExpensesFromDb() {
-  const { data, error } = await db
-    .from("expenses")
-    .select("*")
-    .order("date", { ascending: false });
-
-  if (error) {
-    console.error("Erro ao buscar gastos:", error);
-    return [];
+function loadExpenses() {
+  try {
+    const raw = localStorage.getItem(EXPENSES_KEY);
+    expenses = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Erro ao ler gastos do localStorage:", e);
+    expenses = [];
   }
-
-  return data;
 }
 
-async function insertExpenseToDb(expense) {
-  const { data, error } = await db
-    .from("expenses")
-    .insert(expense)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Erro ao inserir gasto no Supabase:", error);
-    alert("Erro ao salvar gasto no banco.");
-    return null;
-  }
-
-  return data;
+function saveExpenses() {
+  localStorage.setItem(EXPENSES_KEY, JSON.stringify(expenses));
 }
-
-// -------- Helpers de filtro de gastos --------
 
 function getUniqueExpenseCategories() {
   const set = new Set();
   expenses.forEach((e) => {
-    if (e.category && e.category.trim() !== "") {
-      set.add(e.category.trim());
-    }
+    const cat = (e.category || "").trim();
+    if (cat) set.add(cat);
   });
   return Array.from(set).sort();
 }
@@ -453,71 +399,75 @@ function renderExpenseCategoryFilter() {
   if (!select) return;
 
   const current = select.value;
-
   select.innerHTML = "";
+
   const optAll = document.createElement("option");
   optAll.value = "";
   optAll.textContent = "Todas";
   select.appendChild(optAll);
 
-  const categories = getUniqueExpenseCategories();
-  categories.forEach((cat) => {
+  const cats = getUniqueExpenseCategories();
+  cats.forEach((c) => {
     const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
+    opt.value = c;
+    opt.textContent = c;
     select.appendChild(opt);
   });
 
-  const exists = Array.from(select.options).some(
-    (o) => o.value === current
-  );
+  const exists = Array.from(select.options).some((o) => o.value === current);
   select.value = exists ? current : "";
 }
 
-function getCurrentExpenseFilter() {
-  const select = document.getElementById("expenseCategoryFilter");
-  return select ? select.value : "";
-}
-
-// -------- UI: tabela + gráfico --------
-
-function renderExpensesTable(list) {
+function renderExpenses() {
   const tbody = document.getElementById("expensesTableBody");
-  if (!tbody) return;
+  const totalEl = document.getElementById("expensesTotal");
+  const categoryFilter =
+    document.getElementById("expenseCategoryFilter")?.value || "";
+
+  if (!tbody || !totalEl) return;
+
+  let list = expenses.slice();
+
+  if (categoryFilter) {
+    list = list.filter((e) => (e.category || "") === categoryFilter);
+  }
 
   tbody.innerHTML = "";
-
   let total = 0;
 
   list.forEach((exp) => {
+    total += Number(exp.amount || 0);
+
     const tr = document.createElement("tr");
 
-    const dateTd = document.createElement("td");
-    dateTd.textContent = new Date(exp.date).toLocaleDateString("pt-BR");
+    const d = document.createElement("td");
+    d.textContent = exp.date ? new Date(exp.date).toLocaleDateString("pt-BR") : "";
 
-    const descTd = document.createElement("td");
-    descTd.textContent = exp.description;
+    const desc = document.createElement("td");
+    desc.textContent = exp.description;
 
-    const catTd = document.createElement("td");
-    catTd.textContent = exp.category || "-";
+    const cat = document.createElement("td");
+    cat.textContent = exp.category || "Sem categoria";
 
-    const amountTd = document.createElement("td");
-    amountTd.textContent = formatMoney(exp.amount);
+    const val = document.createElement("td");
+    val.textContent = Number(exp.amount || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
 
-    total += Number(exp.amount) || 0;
-
-    tr.appendChild(dateTd);
-    tr.appendChild(descTd);
-    tr.appendChild(catTd);
-    tr.appendChild(amountTd);
-
+    tr.appendChild(d);
+    tr.appendChild(desc);
+    tr.appendChild(cat);
+    tr.appendChild(val);
     tbody.appendChild(tr);
   });
 
-  const totalEl = document.getElementById("expensesTotal");
-  if (totalEl) {
-    totalEl.textContent = formatMoney(total);
-  }
+  totalEl.textContent = total.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  renderExpensesChart(list);
 }
 
 function renderExpensesChart(list) {
@@ -526,22 +476,17 @@ function renderExpensesChart(list) {
 
   const ctx = canvas.getContext("2d");
 
-  const totalsByMonth = new Map();
-
+  // Soma por categoria
+  const totalsByCategory = new Map();
   list.forEach((exp) => {
-    const d = new Date(exp.date);
-    if (Number.isNaN(d.getTime())) return;
-
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}`;
-    const current = totalsByMonth.get(key) || 0;
-    totalsByMonth.set(key, current + Number(exp.amount || 0));
+    const raw = (exp.category || "Sem categoria").trim();
+    const cat = raw === "" ? "Sem categoria" : raw;
+    const current = totalsByCategory.get(cat) || 0;
+    totalsByCategory.set(cat, current + Number(exp.amount || 0));
   });
 
-  const labels = Array.from(totalsByMonth.keys()).sort();
-  const values = labels.map((k) => totalsByMonth.get(k));
+  const labels = Array.from(totalsByCategory.keys()).sort();
+  const values = labels.map((c) => totalsByCategory.get(c));
 
   if (expensesChart) {
     expensesChart.destroy();
@@ -553,7 +498,7 @@ function renderExpensesChart(list) {
       labels,
       datasets: [
         {
-          label: "Gastos por mês (R$)",
+          label: "Gastos por categoria (R$)",
           data: values,
         },
       ],
@@ -572,21 +517,7 @@ function renderExpensesChart(list) {
   });
 }
 
-function renderExpenses() {
-  renderExpenseCategoryFilter();
-
-  const filter = getCurrentExpenseFilter();
-
-  const filtered =
-    !filter ? expenses : expenses.filter((e) => e.category === filter);
-
-  renderExpensesTable(filtered);
-  renderExpensesChart(filtered);
-}
-
-// -------- Ações: formulário de gastos --------
-
-async function handleExpenseFormSubmit(event) {
+function handleExpenseFormSubmit(event) {
   event.preventDefault();
 
   const description = document
@@ -595,119 +526,100 @@ async function handleExpenseFormSubmit(event) {
   const category = document
     .getElementById("expenseCategory")
     .value.trim();
-  const amountRaw = document
-    .getElementById("expenseAmount")
-    .value.trim();
-  const date = document.getElementById("expenseDate").value;
+  const amountStr = document.getElementById("expenseAmount").value;
+  const dateStr = document.getElementById("expenseDate").value;
 
-  if (!description || !amountRaw || !date) {
+  const amount = Number(amountStr.replace(",", "."));
+
+  if (!description || !amount || !dateStr) {
     alert("Preencha descrição, valor e data.");
     return;
   }
 
-  const amount = Number(amountRaw.replace(",", "."));
-  if (Number.isNaN(amount) || amount <= 0) {
-    alert("Informe um valor válido.");
-    return;
-  }
-
-  const newExpense = {
+  const exp = {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     description,
-    category: category || null,
+    category,
     amount,
-    date,
+    date: dateStr,
   };
 
-  const saved = await insertExpenseToDb(newExpense);
-  if (!saved) return;
-
-  expenses.unshift(saved);
-
+  expenses.push(exp);
+  saveExpenses();
+  renderExpenseCategoryFilter();
   renderExpenses();
-  event.target.reset();
+
+  document.getElementById("expenseForm").reset();
 }
 
-// =====================================================
-// ================  INICIALIZAÇÃO  ====================
-// =====================================================
+// =========================
+// Alternar entre ANOTAÇÕES / GASTOS
+// =========================
 
-document.addEventListener("DOMContentLoaded", () => {
-  // ----- Notas -----
-  (async () => {
-    notes = await loadNotesFromDb();
-    renderCategoryFilter();
-    renderNotes();
-  })();
+const modeNotes = document.getElementById("modeNotes");
+const modeExpenses = document.getElementById("modeExpenses");
+const notesView = document.getElementById("notesView");
+const expensesView = document.getElementById("expensesView");
 
-  const form = document.getElementById("noteForm");
-  if (form) {
-    form.addEventListener("submit", handleFormSubmit);
+function activateMode(mode) {
+  if (!modeNotes || !modeExpenses || !notesView || !expensesView) return;
+
+  if (mode === "notes") {
+    modeNotes.classList.add("mode-card-active");
+    modeExpenses.classList.remove("mode-card-active");
+    notesView.classList.add("active-view");
+    expensesView.classList.remove("active-view");
+  } else {
+    modeExpenses.classList.add("mode-card-active");
+    modeNotes.classList.remove("mode-card-active");
+    expensesView.classList.add("active-view");
+    notesView.classList.remove("active-view");
   }
+}
 
-  const clearBtn = document.getElementById("clearFormBtn");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", clearForm);
-  }
+// =========================
+// Inicialização
+// =========================
 
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", renderNotes);
-  }
+document.addEventListener("DOMContentLoaded", async () => {
+  // --- Anotações ---
+  notes = await loadNotesFromDb();
+  renderNotesCategoryFilter();
+  renderNotes();
 
-  const categoryFilter = document.getElementById("categoryFilter");
-  if (categoryFilter) {
-    categoryFilter.addEventListener("change", renderNotes);
-  }
+  const noteForm = document.getElementById("noteForm");
+  noteForm?.addEventListener("submit", handleNoteFormSubmit);
 
-  const sortSelect = document.getElementById("sortSelect");
-  if (sortSelect) {
-    sortSelect.addEventListener("change", renderNotes);
-  }
+  document
+    .getElementById("clearFormBtn")
+    ?.addEventListener("click", clearNoteForm);
 
-  // ----- Gastos -----
-  (async () => {
-    expenses = await loadExpensesFromDb();
-    renderExpenses();
-  })();
+  document
+    .getElementById("searchInput")
+    ?.addEventListener("input", renderNotes);
 
-  const expenseForm = document.getElementById("expenseForm");
-  if (expenseForm) {
-    expenseForm.addEventListener("submit", handleExpenseFormSubmit);
-  }
+  document
+    .getElementById("categoryFilter")
+    ?.addEventListener("change", renderNotes);
 
-  const expenseCategoryFilter = document.getElementById(
-    "expenseCategoryFilter"
-  );
-  if (expenseCategoryFilter) {
-    expenseCategoryFilter.addEventListener("change", renderExpenses);
-  }
+  document
+    .getElementById("sortSelect")
+    ?.addEventListener("change", renderNotes);
 
-  // ----- Alternância de modo (se existir) -----
-  const modeNotes = document.getElementById("modeNotes");
-  const modeExpenses = document.getElementById("modeExpenses");
-  const notesView = document.getElementById("notesView");
-  const expensesView = document.getElementById("expensesView");
+  // --- Gastos ---
+  loadExpenses();
+  renderExpenseCategoryFilter();
+  renderExpenses();
 
-  function activateMode(mode) {
-    if (!modeNotes || !modeExpenses || !notesView || !expensesView) return;
+  document
+    .getElementById("expenseForm")
+    ?.addEventListener("submit", handleExpenseFormSubmit);
 
-    if (mode === "notes") {
-      modeNotes.classList.add("mode-card-active");
-      modeExpenses.classList.remove("mode-card-active");
-      notesView.classList.add("active-view");
-      expensesView.classList.remove("active-view");
-    } else {
-      modeExpenses.classList.add("mode-card-active");
-      modeNotes.classList.remove("mode-card-active");
-      expensesView.classList.add("active-view");
-      notesView.classList.remove("active-view");
-    }
-  }
+  document
+    .getElementById("expenseCategoryFilter")
+    ?.addEventListener("change", renderExpenses);
 
-  if (modeNotes) {
-    modeNotes.addEventListener("click", () => activateMode("notes"));
-  }
-  if (modeExpenses) {
-    modeExpenses.addEventListener("click", () => activateMode("expenses"));
-  }
+  // --- Switch de visão ---
+  modeNotes?.addEventListener("click", () => activateMode("notes"));
+  modeExpenses?.addEventListener("click", () => activateMode("expenses"));
 });

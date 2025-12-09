@@ -2,13 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Servidor de Anotações e Gastos - Luiz</title>
+  <title>Servidor de Anotações & Gastos - Luiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- FAVICON (opcional – se você tiver um arquivo de logo) -->
+  <!-- Se quiser usar a logo como favicon, descomente e coloque o nome do arquivo -->
   <!-- <link rel="icon" type="image/png" href="logo-notes-finance.png" /> -->
 </head>
 <body>
@@ -16,8 +13,7 @@
   <header class="app-header">
     <div class="app-header-inner">
       <div class="app-logo-wrapper">
-        <!-- se tiver uma imagem de logo, coloque aqui -->
-        <!-- <img src="logo-notes-finance.png" alt="Logo" class="app-logo" /> -->
+        <!-- Se tiver arquivo de logo, troque o círculo por <img ...> -->
         <div class="app-logo-fallback">LF</div>
       </div>
       <div class="app-header-text">
@@ -26,28 +22,31 @@
       </div>
     </div>
 
-    <!-- BOTÕES PARA MUDAR A VISÃO -->
+    <!-- BOTÕES PARA TROCAR ENTRE ANOTAÇÕES / GASTOS -->
     <div class="view-modes">
       <button id="modeNotes" class="mode-card mode-card-active">
         <div class="mode-card-title">Anotações</div>
-        <div class="mode-card-subtitle">Estudos, pesquisas, protocolos, comandos…</div>
+        <div class="mode-card-subtitle">
+          Estudos, pesquisas, protocolos, comandos…
+        </div>
       </button>
 
       <button id="modeExpenses" class="mode-card">
         <div class="mode-card-title">Gastos</div>
-        <div class="mode-card-subtitle">Contas do mês, categorias e gráficos</div>
+        <div class="mode-card-subtitle">
+          Contas do mês, categorias e gráficos
+        </div>
       </button>
     </div>
   </header>
 
   <main class="page-container">
-
     <!-- ========================= -->
     <!-- VISÃO: ANOTAÇÕES -->
     <!-- ========================= -->
     <section id="notesView" class="page-section active-view">
       <main class="app-main">
-        <!-- COLUNA ESQUERDA: FORMULÁRIO DE NOTAS -->
+        <!-- FORMULÁRIO (ESQUERDA) -->
         <section class="panel panel-left">
           <h2>Nova anotação / Editar</h2>
 
@@ -109,7 +108,7 @@
           </form>
         </section>
 
-        <!-- COLUNA DIREITA: FILTROS E LISTA DE NOTAS -->
+        <!-- LISTA / FILTROS (DIREITA) -->
         <section class="panel panel-right">
           <h2>Anotações</h2>
 
@@ -141,7 +140,7 @@
           </div>
 
           <div id="notesList" class="notes-list">
-            <!-- cartões de anotações via JS -->
+            <!-- Cards de notas via JS -->
           </div>
         </section>
       </main>
@@ -152,7 +151,7 @@
     <!-- ========================= -->
     <section id="expensesView" class="page-section">
       <main class="app-main">
-        <!-- COLUNA ESQUERDA: FORMULÁRIO DE GASTOS -->
+        <!-- FORMULÁRIO DE GASTOS (ESQUERDA) -->
         <section class="panel panel-left">
           <h2>Gastos do mês</h2>
 
@@ -204,11 +203,10 @@
           </form>
         </section>
 
-        <!-- COLUNA DIREITA: RESUMO, FILTRO, GRÁFICO E TABELA -->
+        <!-- RESUMO / FILTRO / GRÁFICO / LISTA (DIREITA) -->
         <section class="panel panel-right">
           <h2>Resumo e gráfico</h2>
 
-          <!-- TOTAL DO PERÍODO -->
           <div class="expenses-summary">
             <p>
               <strong>Total do período:</strong>
@@ -216,23 +214,19 @@
             </p>
           </div>
 
-          <!-- FILTRO POR CATEGORIA (ACIMA DO GRÁFICO) -->
           <div class="expenses-filter">
             <div class="form-group">
               <label for="expenseCategoryFilter">Filtrar por categoria</label>
               <select id="expenseCategoryFilter">
                 <option value="">Todas</option>
-                <!-- opções preenchidas via JS -->
               </select>
             </div>
           </div>
 
-          <!-- GRÁFICO -->
           <div class="expenses-chart-wrapper">
             <canvas id="expensesChart" height="200"></canvas>
           </div>
 
-          <!-- LISTA DE GASTOS -->
           <h3>Lista de gastos</h3>
           <table class="expenses-table">
             <thead>
@@ -248,18 +242,16 @@
         </section>
       </main>
     </section>
-
   </main>
 
   <footer class="app-footer">
     <small>
-      Dados de anotações e gastos salvos no Supabase — acessíveis de qualquer dispositivo.
+      Anotações salvas no Supabase · Gastos salvos no navegador (localStorage).
     </small>
   </footer>
 
   <!-- SUPABASE -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
   <script>
     const supabaseUrl = "https://arfxhdwvrsfnkgyltbbh.supabase.co";
     const supabaseAnonKey =
@@ -275,7 +267,7 @@
   <!-- CHART.JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- APP JS -->
+  <!-- LÓGICA DO APP -->
   <script src="app.js"></script>
 </body>
 </html>
