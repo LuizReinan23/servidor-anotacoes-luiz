@@ -31,22 +31,25 @@ let editingWikiId = null;
 // =========================
 
 function formatCurrencyBRL(value) {
-  return value.toLocaleString("pt-BR", {
+  // Garante que sempre vamos trabalhar com um número
+  let num = 0;
+
+  if (typeof value === "number") {
+    num = value;
+  } else if (typeof value === "string") {
+    num = Number(value.replace(",", "."));
+  } else {
+    num = Number(value) || 0;
+  }
+
+  if (!Number.isFinite(num)) {
+    num = 0;
+  }
+
+  return num.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   });
-}
-
-function formatDateBR(isoOrDateStr) {
-  const d = new Date(isoOrDateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("pt-BR");
-}
-
-function formatDateTimeBR(isoStr) {
-  const d = new Date(isoStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("pt-BR");
 }
 
 // =========================
