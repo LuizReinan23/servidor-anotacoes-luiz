@@ -17,8 +17,10 @@ body {
 /* LAYOUT GERAL */
 
 .page-container {
-  max-width: 1400px;
-  margin: 0 auto;
+  /* ocupa a largura inteira, sem centralizar */
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 1.5rem;
 }
 
