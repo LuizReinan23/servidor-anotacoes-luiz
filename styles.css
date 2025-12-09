@@ -23,13 +23,27 @@ body {
   margin: 0;
   padding: 1.5rem;
 }
-
 /* HEADER */
 
 .app-header {
   padding: 1.25rem 1.5rem 0.5rem 1.5rem;
   background: #020617;
   border-bottom: 1px solid #111827;
+  
+}
+
+.app-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.app-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.6rem;
+  object-fit: contain;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .app-header-inner {
